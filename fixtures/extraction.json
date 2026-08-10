@@ -1,0 +1,259 @@
+{
+  "memo": {
+    "recorded_by": "Lindsey Parker, standing in for Dan Quinn",
+    "duration_sec": 92,
+    "note": "Verbatim auto-transcript. Disfluencies retained deliberately — the extractor reads real speech, not cleaned speech.",
+    "duration_note": "Roughly a minute and a half. Not precisely timed."
+  },
+  "extracted": [
+    {
+      "field": "locality",
+      "value": "Outside Pittsford, NY — heavily wooded",
+      "confidence": "high",
+      "source": "\"about an hour with a potential client outside Pittsford, New York... heavily wooded area\"",
+      "consequence": "Monroe County. Frost line, tax jurisdiction and rate card region all confirmed."
+    },
+    {
+      "field": "travel",
+      "value": "~20 min from base, 30 in traffic",
+      "confidence": "high",
+      "source": "\"twenty minutes away from home, thirty with traffic\"",
+      "consequence": "Mobilization is a day-rate consideration, not a surcharge. Noted, not priced."
+    },
+    {
+      "field": "substrate",
+      "value": "STONE — not brick",
+      "confidence": "high",
+      "source": "\"absolutely massive stone chimney\"",
+      "consequence": "Material. The rate card's chimney section is written brick-first; stone work prices out of the stone section. Flagged for Dan below."
+    },
+    {
+      "field": "scope_character",
+      "value": "Repair — explicitly not new build",
+      "confidence": "high",
+      "source": "\"It is a repair job. It's not a new build.\"",
+      "consequence": "Taxable repair under NY Pub 862, not a capital improvement. No ST-124."
+    },
+    {
+      "field": "defect",
+      "value": "Major cracking around the top",
+      "confidence": "high",
+      "source": "\"big cracks around the top that need to get patched\"",
+      "consequence": "Points at joint repointing rather than crack repair through stone — confirmed by Dan as mortar joint cracking, under 10 lin ft. No separate stone crack repair line is carried. If cracking proves to run through stone units at height, that is additional scope."
+    },
+    {
+      "field": "height",
+      "value": "~20+ ft, two stories",
+      "confidence": "medium",
+      "source": "\"two stories in total... twenty plus feet\"",
+      "consequence": "Above 12 ft. Access is a priced element, not an afterthought. 'Twenty plus' is a range, not a measurement."
+    },
+    {
+      "field": "age_character",
+      "value": "Historical",
+      "confidence": "medium",
+      "source": "\"large, historical chimney\"",
+      "consequence": "Pre-1930 assumed pending confirmation. Triggers the lime/Type N mortar specification."
+    },
+    {
+      "field": "access_constraint",
+      "value": "Narrow landscaped flagstone path, uneven, unpaved",
+      "confidence": "high",
+      "source": "\"side pathway that's landscaped... flagstone... relatively flat but not totally flat... pretty narrow\"",
+      "consequence": "The governing constraint on the whole job. Rules out most self-propelled boom lifts on width and ground bearing alone."
+    },
+    {
+      "field": "access_method",
+      "value": "Boom lift under consideration — type undetermined, no quote obtained",
+      "confidence": "high",
+      "source": "\"thinking about renting a boom... not sure exactly which type... haven't actually spoken to any equipment rental places\"",
+      "consequence": "NOT PRICED. See refusals."
+    },
+    {
+      "field": "scaffold_ruled_out",
+      "value": "Yes — labor constraint, not preference",
+      "confidence": "high",
+      "source": "\"I don't think I can do it with scaffolding because I need to basically be able to do this on my own. I don't have a reliable helper\"",
+      "consequence": "Removes the rate card's scaffolding factor as an option and converts access into an equipment-rental line."
+    },
+    {
+      "field": "crew",
+      "value": "Solo — no reliable helper",
+      "confidence": "high",
+      "source": "\"I don't have a reliable helper\"",
+      "consequence": "Rate card labor bands assume mason plus tender. Solo working changes the day count and raises a material-handling question at height."
+    },
+    {
+      "field": "material_handling",
+      "value": "~30 lb stone to be carried to height",
+      "confidence": "high",
+      "source": "\"potentially with, you know, like, a thirty pound stone in my materials and do that safely\"",
+      "consequence": "Dan named safety himself, twice. Treated as a requirement, not a risk note."
+    },
+    {
+      "field": "stone_sourcing",
+      "value": "May need to bring stone in",
+      "confidence": "medium",
+      "source": "\"potentially need to bring in stone\"",
+      "consequence": "Match on historic stone is a sourcing question with lead time. Transcript reads 'Pittsburgh'; context is Pittsford."
+    },
+    {
+      "field": "chimney_function",
+      "value": "NON-FUNCTIONAL — enclosed by cabinetry inside",
+      "confidence": "high",
+      "source": "\"it's not a working chimney; it's covered up by cabinets in the house\"",
+      "consequence": "The single most consequential fact in the memo. See below."
+    },
+    {
+      "field": "client_intent",
+      "value": "Stabilization, not restoration to service",
+      "confidence": "high",
+      "source": "\"just to keep it from falling apart not get it functional\"",
+      "consequence": "Defines the success condition. Anything priced toward functionality is scope Dan would be giving away."
+    }
+  ],
+  "suppressed_questions": [
+    {
+      "question": "Liner condition and flue count",
+      "why_suppressed": "The chimney is out of service and enclosed. Liner status is irrelevant to a stabilization scope, and caps are priced per flue on a chimney that vents nothing.",
+      "note": "The standard chimney checklist asks this. Asking it here would cost Dan credibility with a client he has just spent an hour with."
+    },
+    {
+      "question": "Crown rebuild vs repair",
+      "why_suppressed": "Deferred, not suppressed. A crown on a dead chimney is a water-shedding element, still worth doing — but it is subordinate to the crack scope and cannot be sized until the top condition is described."
+    },
+    {
+      "question": "Flashing replacement",
+      "why_suppressed": "Not raised in the memo and not implied by crack repair at the top. Asking would invent scope."
+    },
+    {
+      "question": "Is this a new build or a repair?",
+      "why_suppressed": "Dan answered it unprompted and emphatically."
+    }
+  ],
+  "refusals": [
+    {
+      "item": "Boom lift rental cost",
+      "position": "NOT PRICED — and will not be until a rental yard quotes it.",
+      "reason": "Dan said plainly that he has not called anyone. Any figure the tool produced here would be a fabrication wearing the costume of an estimate, and it sits on the largest uncertainty in the job. The tool instead produces a call sheet specifying exactly what to ask for.",
+      "what_it_produces_instead": "Equipment call sheet with the machine class, the site constraints to quote against, and the questions that determine whether the machine can be sited at all."
+    },
+    {
+      "item": "Linear feet of cracking",
+      "position": "RESOLVED — under 10 lin ft",
+      "reason": "Was: not derivable from 'big cracks around the top'. Dan supplied the quantity. Note it describes MORTAR JOINT cracking, which the repoint line covers — no separate stone crack repair line is carried."
+    },
+    {
+      "item": "Precise height",
+      "position": "Must be confirmed.",
+      "reason": "'Twenty plus feet' spans a real cost range once access equipment is sized to it. Lift working height is specified in fixed increments and the wrong increment is the wrong machine."
+    },
+    {
+      "item": "Historic district status",
+      "position": "RESOLVED — not designated",
+      "reason": "Was: 'historical' describes the chimney, which is not the same as a designated property. Dan confirmed the property is not on a register. The 15–25% factor does not apply, and the removal alternative can be raised freely."
+    },
+    {
+      "item": "Chimney face area",
+      "position": "NOT REFUSED — and it should have been.",
+      "reason": "The tool assumed 44 sq ft (an 11 ft perimeter over the top 4 ft) to price the largest masonry line. Nobody measured it and nothing implied it. Recorded here as a failure of the refusal rule, not a success of it: the rule caught what Dan flagged as unknown and missed what he simply did not mention. The line is marked contingent and the assumption is stated, but that is mitigation, not a defence.",
+      "what_it_produces_instead": "Flagged high-severity in open items, and first on the site-visit measure list."
+    }
+  ],
+  "surfaced_for_dan": [
+    {
+      "id": "removal_option",
+      "severity": "high",
+      "finding": "The chimney is non-functional and enclosed. Nobody uses it. The client's stated goal is that it stop deteriorating.",
+      "implication": "Repairing masonry at 20+ ft solves that goal for as long as the repair holds, on a structure exposed to 100+ freeze-thaw cycles a year with no heat ever passing through it. Taking the chimney down to the roofline and capping the opening solves it permanently, needs no lift at full height, and is very likely cheaper.",
+      "instruction": "This is not the tool overriding Dan. It is a scope alternative the memo implies and the client may not have considered. Dan decides whether to raise it; if the property is designated or the client values the silhouette, it is off the table immediately.",
+      "caveat": "Historic district status has since been confirmed as NOT designated, so removal is not blocked by review. That clears the regulatory objection but not the aesthetic one — it is the client's house and the client's skyline. Raise it as an option, once, and drop it if the answer is no."
+    },
+    {
+      "id": "solo_at_height",
+      "severity": "high",
+      "finding": "Working alone at 20+ ft, hoisting ~30 lb stone from a platform, on a machine sited on uneven unpaved ground.",
+      "implication": "This is the safety question Dan raised twice in ninety seconds. It bears on machine selection — a platform with a material rack and adequate capacity, not the cheapest lift that reaches — and on whether a tender for the lift days is worth pricing in even though he says he has no reliable helper.",
+      "instruction": "Priced options should reflect this. The cheapest access is not the correct access."
+    },
+    {
+      "id": "canopy_obstruction",
+      "severity": "resolved",
+      "finding": "Heavily wooded site. Nothing in the memo addresses what is directly above the chimney.",
+      "implication": "RESOLVED — Dan confirmed nothing overhead. Boom articulation unobstructed, no limb removal, no client permission needed.",
+      "instruction": "Closed. Retained here to show the question was asked and answered rather than dropped."
+    },
+    {
+      "id": "machine_class",
+      "severity": "medium",
+      "finding": "Narrow, uneven, unpaved, landscaped flagstone approach.",
+      "implication": "A conventional self-propelled boom is likely both too wide and too heavy — it will crack the flagstone. The machine class that exists for exactly this problem is a tracked or 'spider' lift: narrow enough for pedestrian paths, low ground pressure, outriggers that level on uneven ground.",
+      "instruction": "Named on the call sheet so Dan asks the rental yard the right question rather than an open one."
+    },
+    {
+      "id": "flagstone_liability",
+      "severity": "medium",
+      "finding": "The access route is finished landscaping, not a driveway.",
+      "implication": "Damage to the client's flagstone path during access is a foreseeable cost. Left unaddressed it becomes an argument at the end of the job.",
+      "instruction": "Either a protection allowance in the scope or an explicit exclusion in the proposal. Not silence."
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "crack_length",
+      "q": "Roughly how many linear feet of cracking, total?",
+      "why": "Primary quantity. Stone crack repair prices per linear foot ($22–45/lin ft).",
+      "blocking": false,
+      "answered": "Under 10 lin ft — mortar joint cracking"
+    },
+    {
+      "id": "defect_type",
+      "q": "Is it cracks only, or are stones actually loose or displaced?",
+      "why": "Crack repair, unit reset ($120–350 each), and dutchman ($220–700 each) are three different jobs at three different prices.",
+      "blocking": false,
+      "answered": "Mortar joint cracks plus some stones possibly shifted; not conclusive"
+    },
+    {
+      "id": "work_zone",
+      "q": "How much of the chimney needs work — just the top few feet, or more of it?",
+      "why": "Determines whether this is spot crack repair or a repoint of the upper section ($18–30/sq ft fieldstone).",
+      "blocking": false,
+      "answered": "Top few feet only"
+    },
+    {
+      "id": "top_condition",
+      "q": "What's the very top doing — is there a cap or crown, and is it intact?",
+      "why": "An open top on a dead chimney is a water funnel. Cheap to address while the lift is there; expensive to return for.",
+      "blocking": false,
+      "answered": "Cap present, appears intact"
+    },
+    {
+      "id": "path_dims",
+      "q": "How wide is that path, and how far from where a truck can park to the chimney?",
+      "why": "Determines machine class and whether it can be sited at all.",
+      "blocking": false,
+      "answered": "3–5 ft, closer to 3"
+    },
+    {
+      "id": "canopy",
+      "q": "Anything overhead — branches, wires?",
+      "why": "Boom articulation clearance.",
+      "blocking": false,
+      "answered": "Nothing overhead"
+    },
+    {
+      "id": "historic_status",
+      "q": "Is the property actually in a designated historic district?",
+      "why": "15–25% factor plus review timeline, and it governs whether the removal option can even be discussed.",
+      "blocking": false,
+      "answered": "Not designated"
+    },
+    {
+      "id": "timing",
+      "q": "When does the client want this done?",
+      "why": "Nov–Mar adds 18–28% and masonry cannot be laid in freezing temperatures at all.",
+      "blocking": false,
+      "answered": "Before winter, not urgent; client taking multiple bids"
+    }
+  ]
+}

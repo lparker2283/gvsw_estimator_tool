@@ -1,0 +1,457 @@
+{
+  "meta": {
+    "source": "GVSW Masonry Repair Pricing Cheat Sheet, 2026 (Google Doc, internal)",
+    "region": "Rochester NY & Finger Lakes",
+    "currency": "USD",
+    "note": "Material costs up 8-14% since 2024 — verify supplier pricing before finalizing bids. Labor ranges reflect prevailing non-union rates.",
+    "distribution": "Internal use only. Not for client distribution. Client-facing documents show committed figures, never ranges."
+  },
+  "categories": {
+    "chimney": {
+      "label": "Chimney Repair",
+      "items": {
+        "crown_repair": {
+          "label": "Crown Repair",
+          "scope": "Patch / resurface cracked crown",
+          "unit": "flat",
+          "total_low": 280,
+          "total_high": 650
+        },
+        "crown_rebuild": {
+          "label": "Crown Rebuild",
+          "scope": "Full new formed concrete crown",
+          "unit": "flat",
+          "total_low": 550,
+          "total_high": 1100
+        },
+        "flashing_replace": {
+          "label": "Flashing — Replace",
+          "scope": "Step + counter, lead or copper",
+          "unit": "flat",
+          "total_low": 550,
+          "total_high": 1600
+        },
+        "cap_install": {
+          "label": "Chimney Cap Install",
+          "scope": "Stainless single-flue cap",
+          "unit": "each",
+          "total_low": 280,
+          "total_high": 650
+        },
+        "full_repoint": {
+          "label": "Full Repoint — Chimney",
+          "scope": "All sides, standard residential",
+          "unit": "flat",
+          "total_low": 650,
+          "total_high": 2400
+        },
+        "partial_rebuild": {
+          "label": "Partial Rebuild Above Roof",
+          "scope": "Standard brick, per foot height",
+          "unit": "lin ft",
+          "total_low": 380,
+          "total_high": 750
+        },
+        "full_rebuild": {
+          "label": "Full Chimney Rebuild",
+          "scope": "Demo + rebuild, standard size",
+          "unit": "flat",
+          "total_low": 5500,
+          "total_high": 14000
+        },
+        "waterproofing_full": {
+          "label": "Waterproofing — Full",
+          "scope": "Penetrating sealer, all surfaces",
+          "unit": "flat",
+          "total_low": 280,
+          "total_high": 750
+        },
+        "tuckpoint_seal_pkg": {
+          "label": "Tuckpoint + Seal Package",
+          "scope": "Repoint + waterproof combo",
+          "unit": "flat",
+          "total_low": 850,
+          "total_high": 2800
+        },
+        "annual_inspection": {
+          "label": "Annual Inspection",
+          "scope": "Crown, flashing, joints, liner",
+          "unit": "flat",
+          "total_low": 175,
+          "total_high": 325
+        }
+      },
+      "material_note_2026": "Lead flashing up ~12%, copper up ~18% from 2024. Stainless or aluminum is a cost-effective alternative for standard residential jobs."
+    },
+    "brick": {
+      "label": "Brick Repair & Replacement",
+      "items": {
+        "brick_single": {
+          "label": "Brick Replacement — Single",
+          "scope": "Tooth in, color match, repoint",
+          "unit": "each",
+          "total_low": 55,
+          "total_high": 110
+        },
+        "brick_section": {
+          "label": "Brick Replacement — Section",
+          "scope": "10-50 brick area, bond match",
+          "unit": "brick",
+          "total_low": 40,
+          "total_high": 80
+        },
+        "spalled_patching": {
+          "label": "Spalled Brick Patching",
+          "scope": "Face repair, patching compound",
+          "unit": "brick",
+          "total_low": 25,
+          "total_high": 55
+        },
+        "full_wall_repoint": {
+          "label": "Full Wall Repoint",
+          "scope": "Rake & repoint, 40%+ failure",
+          "unit": "sq ft",
+          "total_low": 9,
+          "total_high": 16
+        },
+        "spot_repoint": {
+          "label": "Spot Repoint",
+          "scope": "Under 10% joint failure",
+          "unit": "sq ft",
+          "total_low": 12,
+          "total_high": 20
+        },
+        "lintel_replace": {
+          "label": "Lintel Replacement",
+          "scope": "Steel angle or stone, per opening",
+          "unit": "opening",
+          "total_low": 550,
+          "total_high": 1400
+        },
+        "efflorescence": {
+          "label": "Efflorescence Treatment",
+          "scope": "Chemical clean + sealer",
+          "unit": "sq ft",
+          "total_low": 3,
+          "total_high": 6
+        },
+        "wall_crack_repair": {
+          "label": "Brick Wall Crack Repair",
+          "scope": "Epoxy injection + repoint",
+          "unit": "lin ft",
+          "total_low": 18,
+          "total_high": 35
+        }
+      }
+    },
+    "stone": {
+      "label": "Stone Repair & Replacement",
+      "items": {
+        "dutchman_repair": {
+          "label": "Dutchman Repair",
+          "scope": "Cut out & insert matching patch",
+          "unit": "each",
+          "total_low": 220,
+          "total_high": 700
+        },
+        "stone_unit_reset": {
+          "label": "Stone Unit Reset",
+          "scope": "Lift, re-bed, repoint loose stone",
+          "unit": "each",
+          "total_low": 120,
+          "total_high": 350
+        },
+        "stone_consolidation": {
+          "label": "Stone Consolidation",
+          "scope": "Penetrating consolidant, spalling",
+          "unit": "sq ft",
+          "total_low": 5,
+          "total_high": 12
+        },
+        "fieldstone_repoint": {
+          "label": "Fieldstone Repoint",
+          "scope": "Wide joints, rubble stone",
+          "unit": "sq ft",
+          "total_low": 18,
+          "total_high": 30
+        },
+        "cut_stone_repoint": {
+          "label": "Cut Stone Repoint",
+          "scope": "Ashlar / dimensional, tight joints",
+          "unit": "sq ft",
+          "total_low": 20,
+          "total_high": 36
+        },
+        "stone_crack_repair": {
+          "label": "Stone Crack Repair",
+          "scope": "Epoxy fill, color blend",
+          "unit": "lin ft",
+          "total_low": 22,
+          "total_high": 45
+        },
+        "carved_detail_patch": {
+          "label": "Carved Detail Patch",
+          "scope": "Cornice, corbel, molding repair",
+          "unit": "each",
+          "total_low": 180,
+          "total_high": 900
+        },
+        "stone_clean_seal": {
+          "label": "Stone Cleaning & Sealing",
+          "scope": "Low-pressure wash + siloxane",
+          "unit": "sq ft",
+          "total_low": 3,
+          "total_high": 6
+        }
+      },
+      "note_2026": "Rochester sees 100+ freeze-thaw cycles/year — the #1 stone deterioration cause. Inspect and seal every fall."
+    },
+    "historic": {
+      "label": "Historic & Restoration",
+      "items": {
+        "mortar_analysis": {
+          "label": "Mortar Analysis / Match",
+          "scope": "Lab sample",
+          "unit": "flat",
+          "total_low": 250,
+          "total_high": 700
+        },
+        "nhl_lime_repointing": {
+          "label": "NHL Lime Repointing",
+          "scope": "Pre-1930 buildings",
+          "unit": "sq ft",
+          "total_low": 16,
+          "total_high": 28
+        },
+        "face_consolidation": {
+          "label": "Face Consolidation",
+          "scope": "Spalling brick / stone",
+          "unit": "sq ft",
+          "total_low": 5,
+          "total_high": 12
+        },
+        "dutchman_insert": {
+          "label": "Dutchman Insert",
+          "scope": "Cut out + matching patch",
+          "unit": "each",
+          "total_low": 250,
+          "total_high": 950
+        },
+        "carved_detail_repair": {
+          "label": "Carved Detail Repair",
+          "scope": "Cornice, corbel, molding",
+          "unit": "each",
+          "total_low": 180,
+          "total_high": 1400
+        },
+        "stain_color_blend": {
+          "label": "Staining / Color Blend",
+          "scope": "Match repairs to aged material",
+          "unit": "sq ft",
+          "total_low": 4,
+          "total_high": 10
+        },
+        "facade_assessment": {
+          "label": "Full Facade Assessment",
+          "scope": "Report + photo doc",
+          "unit": "flat",
+          "total_low": 500,
+          "total_high": 1400
+        }
+      },
+      "note_2026": "NY tax credit jobs: add 10–15% for documentation, compliance photos and reporting."
+    }
+  },
+  "adjustment_factors": {
+    "scaffolding_above_12ft": {
+      "label": "Scaffolding required (above 12 ft)",
+      "type": "percent",
+      "low": 20,
+      "high": 35
+    },
+    "historic_district": {
+      "label": "Historic / landmark district",
+      "type": "percent",
+      "low": 15,
+      "high": 25
+    },
+    "winter_work": {
+      "label": "Winter work (Nov–Mar), cold-weather protection",
+      "type": "percent",
+      "low": 18,
+      "high": 28
+    },
+    "emergency_callout": {
+      "label": "Emergency / storm response call-out",
+      "type": "flat",
+      "low": 225,
+      "high": 450
+    },
+    "color_match": {
+      "label": "Color-match mortar or stucco",
+      "type": "per_sqft",
+      "low": 3,
+      "high": 6
+    },
+    "structural_permit": {
+      "label": "Structural permit required",
+      "type": "flat",
+      "low": 175,
+      "high": 500
+    },
+    "difficult_access": {
+      "label": "Difficult access / no vehicle entry",
+      "type": "percent",
+      "low": 15,
+      "high": 25
+    },
+    "premium_stone": {
+      "label": "Premium stone (granite, marble, limestone)",
+      "type": "percent_material",
+      "low": 20,
+      "high": 40
+    },
+    "hazmat": {
+      "label": "Lead paint / hazmat abatement",
+      "type": "quote_separately"
+    }
+  },
+  "quick_reference": {
+    "mason_rate_hr": {
+      "low": 75,
+      "high": 110,
+      "label": "Mason / stone carver"
+    },
+    "laborer_rate_hr": {
+      "low": 35,
+      "high": 55,
+      "label": "Laborer / tender"
+    },
+    "minimum_job_charge": {
+      "low": 350,
+      "high": 600
+    },
+    "type_s_mortar_80lb": {
+      "low": 14,
+      "high": 20
+    },
+    "nhl_lime_55lb": {
+      "low": 32,
+      "high": 52
+    },
+    "face_brick_each": {
+      "low": 0.95,
+      "high": 2.8
+    },
+    "sealer_5gal": {
+      "low": 95,
+      "high": 185
+    },
+    "hydraulic_cement_10lb": {
+      "low": 18,
+      "high": 28
+    }
+  },
+  "integrity_specs": [
+    {
+      "id": "frost_line",
+      "applies_to": [
+        "flatwork",
+        "steps",
+        "patio",
+        "foundation"
+      ],
+      "statement": "Sub-base must sit 12\" or more below the frost line — 48\" in Monroe County.",
+      "rationale": "Frost heave is the leading cause of flatwork failure in Rochester."
+    },
+    {
+      "id": "freeze_thaw_cycles",
+      "applies_to": [
+        "stone",
+        "chimney",
+        "brick",
+        "tile"
+      ],
+      "statement": "Rochester sees 100+ freeze-thaw cycles per year.",
+      "rationale": "Freeze-thaw is the #1 cause of stone deterioration locally; inspect and seal annually."
+    },
+    {
+      "id": "wall_drainage",
+      "applies_to": [
+        "retaining_wall"
+      ],
+      "statement": "Crushed stone backfill, filter fabric, and weep holes are required on any wall rebuild.",
+      "rationale": "Drainage failure is the #1 cause of wall collapse."
+    },
+    {
+      "id": "water_contact_mortar",
+      "applies_to": [
+        "water_features",
+        "chimney_crown"
+      ],
+      "statement": "Hydraulic cement and waterproofing mortar admix are required on water-contact surfaces. Standard Type S will not hold.",
+      "rationale": "Type S fails under sustained water contact."
+    },
+    {
+      "id": "exterior_tile_thinset",
+      "applies_to": [
+        "tile_exterior"
+      ],
+      "statement": "Frost-rated tile and polymer-modified thinset are required on exterior tile.",
+      "rationale": "Standard thinset will not survive Rochester freeze-thaw cycles."
+    },
+    {
+      "id": "historic_mortar",
+      "applies_to": [
+        "brick",
+        "chimney",
+        "stone"
+      ],
+      "condition": "structure built pre-1930",
+      "statement": "Type N or NHL lime mortar is required on pre-1930 masonry.",
+      "rationale": "Portland-based mortar is too hard and causes face spalling on historic soft brick."
+    }
+  ],
+  "tax": {
+    "jurisdiction": "Monroe County, NY",
+    "classification_rule": "New installation or COMPLETE replacement = capital improvement (labor not taxable to client, requires signed Form ST-124 on file). Repair or PARTIAL replacement = taxable on the full billed amount including labor, materials and markup.",
+    "chimney_examples": {
+      "capital_improvement": [
+        "Complete replacement of chimney",
+        "Installation of new chimney",
+        "Addition or complete replacement of flue or liner",
+        "Sealing of flashings",
+        "Installation of spark arrestors"
+      ],
+      "taxable_repair": [
+        "Repointing",
+        "Repair or replacement of caps, damaged bricks, flashings, loose mortar, pots",
+        "Fixing cracks",
+        "Chimney cleaning",
+        "Repair of flues"
+      ]
+    },
+    "note": "Classification is determined per line item, not per job. A single job may contain both. Confirm with Dan's accountant before relying on this in a signed document.",
+    "source": "NYS Publication 862; Tax Bulletins ST-104 and ST-786"
+  },
+  "pending_config": {
+    "tax_rate_pct": null,
+    "warranty_term": null,
+    "deposit_split": null,
+    "progress_payment_split": null,
+    "preferred_suppliers": null,
+    "license_number": null,
+    "domain": "geneseevalleystoneworks.com",
+    "_comment": "Nulls are deliberate. The tool must not invent these — it flags them as open on the internal assessment and leaves them blank on the client document."
+  },
+  "company": {
+    "name": "Genesee Valley Stone Works",
+    "city": "Rochester, NY",
+    "phone": "585-808-6247",
+    "email": "dan@geneseevalleystoneworks.com",
+    "web": "geneseevalleystoneworks.com",
+    "tagline": "We take pride in every stone we set.",
+    "footer": "Rochester, NY · Licensed & Insured · Serving the Greater Genesee Valley Region"
+  },
+  "_transcription_note": "Categories present in the source cheat sheet and transcribed here: brick, stone, chimney, historic. Categories in the source but NOT yet transcribed: foundation, stucco/parging, water features, steps/patios/flatwork, retaining walls, tile. Any estimate touching those must not cite this file."
+}
