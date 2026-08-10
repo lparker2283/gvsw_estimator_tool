@@ -1,12 +1,13 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { use, useState, useEffect } from 'react';
 
 /**
  * One question per screen. "Q1 of 3" is computed before the first is shown,
  * so the promise is true. Every question carries a "don't know" escape hatch —
  * for a perfectionist, removing the failure state is the whole design.
  */
-export default function Questions({ params }: { params: { token: string } }) {
+export default function Questions({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params);
   const [job, setJob] = useState<any>(null);
   const [i, setI] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -15,8 +16,8 @@ export default function Questions({ params }: { params: { token: string } }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/job/${params.token}`).then(r => r.json()).then(setJob);
-  }, [params.token]);
+    fetch(`/api/job/${token}`).then(r => r.json()).then(setJob);
+  }, [token]);
 
   if (!job) return <Shell><p style={S.dim}>Loading…</p></Shell>;
   if (done) return (
@@ -38,7 +39,7 @@ export default function Questions({ params }: { params: { token: string } }) {
     setBusy(true);
     await fetch('/api/submit', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: params.token, answers: next }),
+      body: JSON.stringify({ token, answers: next }),
     });
     setBusy(false); setDone(true);
   };

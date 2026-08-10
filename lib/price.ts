@@ -5,7 +5,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import ratecard from '../data/ratecard.json';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Built on first use: the SDK throws without a key, and Next imports this
+// module while collecting page data during the build, where no key exists.
+let _anthropic: Anthropic | null = null;
+function anthropic() {
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _anthropic;
+}
 
 const SYSTEM = `You price masonry jobs for Genesee Valley Stone Works against the attached rate card.
 
@@ -31,7 +37,7 @@ RULES
 Return ONLY the tool JSON.`;
 
 export async function price(extraction: any, answers: Record<string, string>) {
-  const msg = await anthropic.messages.create({
+  const msg = await anthropic().messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 8000,
     system: SYSTEM,

@@ -6,7 +6,13 @@ import Anthropic from '@anthropic-ai/sdk';
 import ratecard from '../data/ratecard.json';
 import chimney from '../data/completeness-chimney.json';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Built on first use: the SDK throws without a key, and Next imports this
+// module while collecting page data during the build, where no key exists.
+let _anthropic: Anthropic | null = null;
+function anthropic() {
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _anthropic;
+}
 const MAX_Q = Number(process.env.MAX_QUESTIONS || 5);
 
 export type Question = {
@@ -53,7 +59,7 @@ NON-NEGOTIABLE RULES
 Return ONLY the JSON described by the tool schema.`;
 
 export async function extract(transcript: string): Promise<Extraction> {
-  const msg = await anthropic.messages.create({
+  const msg = await anthropic().messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 4000,
     system: SYSTEM,

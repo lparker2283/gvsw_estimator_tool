@@ -1,7 +1,13 @@
 import { Resend } from 'resend';
 import type { Doc } from './docs';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Built on first use: the SDK throws without a key, and Next imports this
+// module while collecting page data during the build, where no key exists.
+let _resend: Resend | null = null;
+function resend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 const FROM = process.env.MAIL_FROM!;
 
 const wrap = (body: string) => `
@@ -12,7 +18,7 @@ const wrap = (body: string) => `
 
 export async function sendQuestionsEmail(o: { to: string; count: number; link: string; transcript: string }) {
   const noun = o.count === 1 ? 'question' : 'questions';
-  await resend.emails.send({
+  await resend().emails.send({
     from: FROM, to: o.to,
     subject: `Got your memo — ${o.count} ${noun}, about a minute`,
     html: wrap(`
@@ -34,7 +40,7 @@ export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: b
   const problems = o.spec._validation?.length
     ? `<p style="color:#8a3b2a"><b>Validation flagged ${o.spec._validation.length}:</b><br>${o.spec._validation.join('<br>')}</p>` : '';
 
-  await resend.emails.send({
+  await resend().emails.send({
     from: FROM, to: o.to,
     subject: o.review
       ? `[REVIEW] ${o.spec.proposal_no} — ready for Dan`
