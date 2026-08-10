@@ -1,0 +1,132 @@
+{
+  "category": "chimney",
+  "label": "Chimney Repair",
+  "principle": "The tool asks only for what it cannot responsibly derive. Every question below exists because getting it wrong changes the number, the method, or Dan's liability — not because a form has a blank in it.",
+
+  "required": [
+    {
+      "field": "scope_determination",
+      "ask": "What are we actually doing — repointing it, rebuilding the part above the roof, or taking the whole thing down and rebuilding?",
+      "why": "These are three different line items with a 20x price spread ($650 repoint to $14,000 full rebuild). Nothing downstream can be priced until this is settled.",
+      "blocks": ["pricing", "tax_classification", "timeline"],
+      "derivable_from_memo": true
+    },
+    {
+      "field": "height_above_roofline",
+      "unit": "linear feet",
+      "ask": "How many feet of chimney above the roofline?",
+      "why": "Partial rebuild is priced per linear foot ($380–750/lin ft). A two-foot error is a four-figure error.",
+      "blocks": ["pricing"],
+      "derivable_from_memo": false,
+      "refuse_to_infer": "Never estimate chimney height from a photograph or from the house's apparent size. Ask, or price contingent on a measured site visit."
+    },
+    {
+      "field": "total_working_height",
+      "unit": "feet from grade",
+      "ask": "Roughly how high off the ground is the work — eave height plus the chimney?",
+      "why": "Above 12 ft triggers the scaffolding factor (+20–35%). It also determines whether a ladder is even legal to work from.",
+      "blocks": ["access_method", "pricing"],
+      "derivable_from_memo": false
+    },
+    {
+      "field": "access_method",
+      "options": ["ladder", "roof jacks / staging", "pipe scaffold", "boom lift", "undetermined — site visit required"],
+      "ask": "How are you getting up there — staging off the roof, pipe scaffold, or a lift?",
+      "why": "This is a real cost line, not a percentage. A boom rental is a hard dollar figure plus delivery; scaffold is labor-days. The rate card's +20–35% covers scaffold, not equipment rental.",
+      "blocks": ["pricing", "timeline"],
+      "derivable_from_memo": true
+    },
+    {
+      "field": "lift_placement_feasible",
+      "type": "boolean_or_unknown",
+      "ask": "If it's a lift — can it actually get where it needs to be? Gate width, ground firm enough, anything overhead?",
+      "why": "A boom that cannot be sited is a quoted cost that evaporates and takes the schedule with it. Overhead service drops near a chimney are common and are a stop-work condition, not an inconvenience.",
+      "blocks": ["access_method", "risk_register"],
+      "derivable_from_memo": true,
+      "escalate_if": "unknown",
+      "escalation": "Price the job with a site-visit gate before the access line is committed, and state the contingency plainly on the internal assessment."
+    },
+    {
+      "field": "flue_count",
+      "ask": "How many flues?",
+      "why": "Caps are priced per flue ($280–650 each). Also bears on liner scope.",
+      "blocks": ["pricing"],
+      "derivable_from_memo": false
+    },
+    {
+      "field": "crown_condition",
+      "options": ["sound", "cracked — patchable", "failed — needs rebuild", "not yet assessed"],
+      "ask": "What's the crown doing — is it cracked, or is it gone?",
+      "why": "Repair is $280–650; rebuild is $550–1,100. The crown is also a water-contact surface, which carries a mandatory material spec.",
+      "blocks": ["pricing", "integrity_flags"],
+      "derivable_from_memo": false,
+      "integrity_spec": "water_contact_mortar"
+    },
+    {
+      "field": "flashing_condition",
+      "options": ["sound", "needs replacement", "not yet assessed"],
+      "ask": "Flashing — reusing it or replacing it?",
+      "why": "$550–1,600, and it is the most common water path into the structure. If the chimney is being rebuilt above the roof and the flashing is left, the failure returns and it looks like Dan's fault.",
+      "blocks": ["pricing", "warranty_exposure"],
+      "derivable_from_memo": false
+    },
+    {
+      "field": "liner_status",
+      "options": ["intact", "damaged", "none", "unknown"],
+      "ask": "Is there a liner, and does anyone know its condition?",
+      "why": "Safety-critical if the chimney serves a fuel-burning appliance. Also flips tax classification: a complete flue or liner replacement is a capital improvement; patching one is a taxable repair.",
+      "blocks": ["tax_classification", "risk_register"],
+      "derivable_from_memo": false,
+      "refuse_to_infer": "Never assume a liner is sound. If the chimney is in service and the liner is unknown, an inspection line item precedes any rebuild quote."
+    },
+    {
+      "field": "construction_date",
+      "ask": "Roughly how old is the house — before or after 1930?",
+      "why": "Pre-1930 soft brick requires Type N or NHL lime mortar. Portland-based mortar spalls the face. This is a specification, not a preference, and NHL runs roughly 2–3x Type S in material cost.",
+      "blocks": ["material_spec", "pricing"],
+      "derivable_from_memo": false,
+      "integrity_spec": "historic_mortar"
+    },
+    {
+      "field": "target_window",
+      "ask": "When does this need to happen?",
+      "why": "November through March triggers cold-weather protection (+18–28%), and masonry cannot be laid in freezing temperatures at all. A date promised into a Rochester winter is a date that will slip.",
+      "blocks": ["pricing", "timeline"],
+      "derivable_from_memo": true
+    }
+  ],
+
+  "conditional": [
+    {
+      "field": "historic_district",
+      "trigger": "construction_date is pre-1930 OR address falls in a designated district",
+      "ask": "Is the property in a landmark or historic district?",
+      "why": "+15–25%, plus review timelines that are outside Dan's control."
+    },
+    {
+      "field": "permit_required",
+      "trigger": "scope_determination is full_rebuild OR partial_rebuild",
+      "ask": "Does this need a permit?",
+      "why": "$175–500 flat, and an unpermitted structural rebuild is a problem that surfaces at resale, years later."
+    },
+    {
+      "field": "roof_material_and_pitch",
+      "trigger": "access_method involves working off the roof",
+      "ask": "What's the roof — and how steep?",
+      "why": "Slate and tile carry breakage liability that asphalt does not. Steep pitch changes the staging method and the day count."
+    }
+  ],
+
+  "never_infer": [
+    "Chimney height, from photographs or from the apparent scale of the house",
+    "Liner condition, without inspection",
+    "Structural condition below the roofline, from what is visible above it",
+    "Whether a lift can be sited, from an aerial image",
+    "The committed price — the tool proposes a range and a recommendation; Dan commits the number"
+  ],
+
+  "output_contract": {
+    "if_all_required_present": "Produce all three deliverables with committed-figure recommendations.",
+    "if_gaps_remain": "Produce the internal assessment with gaps listed as open items and the affected lines marked contingent. Do not produce a client-facing proposal containing a guessed figure — an unmarked guess in a client document is the failure mode this whole tool exists to prevent."
+  }
+}
