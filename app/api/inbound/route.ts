@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { Webhook } from 'svix';
 import { transcribe } from '@/lib/transcribe';
 import { extract } from '@/lib/extract';
 import { db } from '@/lib/db';
@@ -16,11 +17,36 @@ const AUDIO = /\.(m4a|mp3|mp4|wav|aac|ogg|webm|amr|caf)$/i;
 export async function POST(req: NextRequest) {
   const raw = await req.text();
 
+  /**
+   * Resend signs webhooks with Svix. The signature covers
+   * `${svix-id}.${svix-timestamp}.${body}` — NOT the body alone — the secret is
+   * base64 after its `whsec_` prefix is stripped, and the digest is base64, not hex.
+   * A hand-rolled HMAC over the raw body gets all three of those wrong and rejects
+   * every legitimate delivery. Use the official verifier; it also enforces the
+   * timestamp tolerance that stops a captured request being replayed.
+   */
   const secret = process.env.RESEND_INBOUND_SECRET;
-  if (secret) {
-    const sig = req.headers.get('svix-signature') || req.headers.get('resend-signature') || '';
-    const expected = crypto.createHmac('sha256', secret).update(raw).digest('hex');
-    if (!sig.includes(expected)) return NextResponse.json({ error: 'bad signature' }, { status: 401 });
+  if (!secret) {
+    // Fail CLOSED. An unauthenticated inbound webhook is an open door: anyone who
+    // finds the URL can post a fake memo and burn transcription and model spend.
+    console.error('[inbound] RESEND_INBOUND_SECRET is not set — refusing the request.');
+    return NextResponse.json({ error: 'webhook not configured' }, { status: 503 });
+  }
+
+  try {
+    new Webhook(secret).verify(raw, {
+      'svix-id': req.headers.get('svix-id') || '',
+      'svix-timestamp': req.headers.get('svix-timestamp') || '',
+      'svix-signature': req.headers.get('svix-signature') || '',
+    });
+  } catch (err) {
+    // Log which headers actually arrived. If Resend ever renames them, this line is
+    // the difference between a five-minute fix and an afternoon.
+    console.error('[inbound] signature verification failed.', {
+      message: (err as Error).message,
+      headers: [...req.headers.keys()].filter(h => /svix|resend|signature/i.test(h)),
+    });
+    return NextResponse.json({ error: 'bad signature' }, { status: 401 });
   }
 
   const payload = JSON.parse(raw);
