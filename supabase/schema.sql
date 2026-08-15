@@ -14,11 +14,18 @@ create table jobs (
   answers         jsonb not null default '{}'::jsonb,
   job_spec        jsonb,                     -- the priced job.json
   token           text unique not null,      -- signed, used in /q/<token>
+  event_id        text,                      -- svix-id of the delivery that made this row
   delivered_at    timestamptz
 );
 
 create index on jobs (status);
 create index on jobs (created_at desc);
+
+-- One job per inbound delivery. Svix reuses its message id across retries, so a
+-- retried memo collides here instead of transcribing, pricing and emailing twice.
+-- Nullable on purpose: rows made by hand carry no event, and Postgres lets nulls
+-- repeat under a unique index.
+create unique index jobs_event_id_key on jobs (event_id);
 
 -- Every edit Dan makes, classified by type. Different failures, different fixes.
 create table corrections (
