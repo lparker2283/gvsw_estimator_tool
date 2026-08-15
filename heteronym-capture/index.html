@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heteronym — Face Capture</title>
+<style>
+  :root {
+    --bg: #0e0d0f;
+    --panel: #1a181c;
+    --ink: #ece8e1;
+    --dim: #8f8a81;
+    --accent: #c9a35c;
+    --danger: #b3543f;
+    --ok: #6f9c6a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+  }
+  h1 {
+    font-weight: normal;
+    font-size: 1.6rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.25rem;
+  }
+  h1 .mask { color: var(--accent); }
+  .tagline { color: var(--dim); font-style: italic; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .screen { width: 100%; max-width: 960px; display: none; }
+  .screen.active { display: block; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid #2c2930;
+    border-radius: 10px;
+    padding: 1.5rem;
+  }
+  ul.tips { list-style: none; margin: 1rem 0; }
+  ul.tips li { padding: 0.4rem 0 0.4rem 1.6rem; position: relative; color: var(--ink); }
+  ul.tips li::before { content: "◆"; color: var(--accent); position: absolute; left: 0; font-size: 0.7rem; top: 0.65rem; }
+  ul.tips li small { color: var(--dim); display: block; }
+  button {
+    font-family: inherit;
+    font-size: 1rem;
+    background: var(--accent);
+    color: #17130b;
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1.6rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  button:hover { filter: brightness(1.1); }
+  button.ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid #444;
+  }
+  button:disabled { opacity: 0.45; cursor: default; }
+  .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 1.25rem; }
+  select {
+    font-family: inherit;
+    background: #242128;
+    color: var(--ink);
+    border: 1px solid #3a3640;
+    border-radius: 6px;
+    padding: 0.55rem 0.7rem;
+    max-width: 100%;
+  }
+  .videowrap { position: relative; border-radius: 10px; overflow: hidden; background: #000; }
+  video { display: block; width: 100%; transform: scaleX(-1); }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+    padding: 1.25rem;
+  }
+  .instruction {
+    align-self: center;
+    background: rgba(10, 9, 11, 0.72);
+    border: 1px solid rgba(201, 163, 92, 0.5);
+    border-radius: 8px;
+    padding: 0.8rem 1.4rem;
+    font-size: 1.35rem;
+    text-align: center;
+    max-width: 90%;
+  }
+  .instruction small { display: block; color: var(--dim); font-size: 0.85rem; margin-top: 0.2rem; }
+  .capturebar {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    font-size: 0.9rem; color: var(--ink);
+    text-shadow: 0 1px 3px #000;
+  }
+  .stepdots { display: flex; gap: 6px; }
+  .stepdots span { width: 10px; height: 10px; border-radius: 50%; background: #444; display: inline-block; }
+  .stepdots span.done { background: var(--accent); }
+  .stepdots span.now { background: var(--ink); }
+  .progressline { height: 4px; background: #2c2930; border-radius: 2px; margin-top: 0.75rem; overflow: hidden; }
+  .progressline div { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s linear; }
+  .bigcount {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 7rem; color: var(--ink); background: rgba(10,9,11,0.6);
+  }
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px; margin-top: 1rem;
+  }
+  .thumb { position: relative; border-radius: 6px; overflow: hidden; cursor: pointer; border: 2px solid transparent; }
+  .thumb img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+  .thumb.selected { border-color: var(--accent); }
+  .thumb:not(.selected) img { opacity: 0.32; filter: grayscale(0.8); }
+  .thumb .badge {
+    position: absolute; bottom: 4px; right: 4px;
+    background: rgba(0,0,0,0.7); color: var(--dim);
+    font-size: 0.65rem; padding: 1px 5px; border-radius: 4px;
+  }
+  .thumb .badge.blur { color: var(--danger); }
+  .statline { color: var(--dim); margin-top: 0.75rem; font-size: 0.95rem; }
+  .statline b { color: var(--ink); }
+  a.dl { display: none; }
+  .error { color: var(--danger); margin-top: 1rem; }
+  footer { color: #57534c; font-size: 0.8rem; margin-top: 2rem; font-style: italic; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>HETERONYM <span class="mask">/</span> face capture</h1>
+<div class="tagline">every angle of the baseline — recorded once, locally, given to no one by default</div>
+
+<!-- ═════════ SETUP ═════════ -->
+<section id="setup" class="screen active">
+  <div class="panel">
+    <p>This records one continuous guided take (~80 seconds) and pulls still frames the whole way
+    through. You end up with the raw video plus a curated set of sharp frames covering every angle
+    of your face — the reference material for the baseline “mes.”</p>
+    <ul class="tips">
+      <li>Face a window or soft light source <small>even, diffuse light on the whole face — no hard side shadows, no backlight</small></li>
+      <li>Plain, uncluttered background <small>a blank wall beats a busy room</small></li>
+      <li>Camera at eye level, face filling ~⅔ of frame <small>prop the laptop up if you need to</small></li>
+      <li>Hair off the face, glasses off <small>do a second take with glasses/other hair later if that’s also “you”</small></li>
+      <li>Neutral-ish makeup or none <small>this take is the baseline; the personas get built on top</small></li>
+      <li>Move <em>slowly</em> during the turns <small>slow movement = sharp frames at every angle</small></li>
+    </ul>
+    <div class="row">
+      <button id="btnCam" class="ghost">Enable camera</button>
+      <select id="camSelect" hidden></select>
+      <button id="btnStart" disabled>Begin capture</button>
+    </div>
+    <div id="setupErr" class="error" hidden></div>
+  </div>
+</section>
+
+<!-- ═════════ CAPTURE ═════════ -->
+<section id="capture" class="screen">
+  <div class="videowrap">
+    <video id="preview" autoplay playsinline muted></video>
+    <div class="overlay">
+      <div class="instruction"><span id="stepText">…</span><small id="stepSub"></small></div>
+      <div class="capturebar">
+        <div class="stepdots" id="dots"></div>
+        <div><span id="frameCount">0</span> frames · <span id="timeLeft"></span></div>
+      </div>
+    </div>
+    <div class="bigcount" id="bigcount" hidden>3</div>
+  </div>
+  <div class="progressline"><div id="stepProgress"></div></div>
+  <div class="row">
+    <button id="btnAbort" class="ghost">Abort take</button>
+  </div>
+</section>
+
+<!-- ═════════ REVIEW ═════════ -->
+<section id="review" class="screen">
+  <div class="panel">
+    <p><b>Review.</b> Blurry frames were auto-deselected (dimmed). Click any frame to toggle it.
+    Keep variety over volume: you want clean coverage of every angle and expression, not 200
+    near-duplicates of your good side.</p>
+    <div class="statline" id="reviewStats"></div>
+    <div class="row">
+      <button id="btnZip">Download selected frames (.zip)</button>
+      <button id="btnVideo" class="ghost">Download full video</button>
+      <button id="btnSharp" class="ghost">Reset to sharp-only</button>
+      <button id="btnAgain" class="ghost">New take</button>
+    </div>
+    <div id="grid"></div>
+  </div>
+</section>
+
+<footer>“Under this mask, another mask; I will never finish removing all these faces.”</footer>
+<a id="dlAnchor" class="dl"></a>
+
+<script>
+'use strict';
+
+/* ───────────────────────── guided pose script ───────────────────────── */
+const STEPS = [
+  { text: 'Look straight at the camera', sub: 'relaxed, neutral face', secs: 6 },
+  { text: 'Slowly turn your head all the way LEFT', sub: 'to full profile… then slowly back', secs: 9 },
+  { text: 'Slowly turn all the way RIGHT', sub: 'to full profile… then slowly back', secs: 9 },
+  { text: 'Tilt your chin UP, slowly', sub: 'ceiling-ward… then back down', secs: 6 },
+  { text: 'Tilt your chin DOWN, slowly', sub: 'chest-ward… then back up', secs: 6 },
+  { text: 'Roll your head in a slow circle', sub: 'nose drawing a big circle in the air', secs: 9 },
+  { text: 'Slight smile — turn slowly left, then right', sub: 'the almost-smile, held while turning', secs: 8 },
+  { text: 'Full genuine smile', sub: 'straight, then a little left, a little right', secs: 6 },
+  { text: 'Talk to the camera', sub: 'count to ten out loud, naturally', secs: 8 },
+  { text: 'Lean in closer… then back out', sub: 'change the distance, keep the face in frame', secs: 6 },
+  { text: 'Straight ahead once more', sub: 'neutral again — the bookend', secs: 5 },
+];
+const FRAME_INTERVAL_MS = 320;   // ~3 fps of stills
+const JPEG_QUALITY = 0.92;
+
+/* ───────────────────────── state ───────────────────────── */
+let stream = null;
+let recorder = null;
+let recordedChunks = [];
+let videoBlob = null;
+let frames = [];          // { blob, url, score, selected, index }
+let grabTimer = null;
+let stepTimer = null;
+let aborted = false;
+
+const $ = id => document.getElementById(id);
+const show = id => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+};
+
+/* ───────────────────────── camera setup ───────────────────────── */
+async function enableCamera(deviceId) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  const constraints = {
+    audio: true,
+    video: {
+      width: { ideal: 1920 }, height: { ideal: 1080 },
+      frameRate: { ideal: 30 },
+      ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' }),
+    },
+  };
+  stream = await navigator.mediaDevices.getUserMedia(constraints);
+  $('preview').srcObject = stream;
+}
+
+$('btnCam').addEventListener('click', async () => {
+  $('setupErr').hidden = true;
+  try {
+    await enableCamera();
+    // populate camera picker now that we have permission
+    const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    if (cams.length > 1) {
+      const sel = $('camSelect');
+      sel.innerHTML = cams.map(c => `<option value="${c.deviceId}">${c.label || 'Camera'}</option>`).join('');
+      sel.hidden = false;
+      sel.onchange = () => enableCamera(sel.value).catch(showSetupError);
+    }
+    $('btnCam').textContent = 'Camera on ✓';
+    $('btnStart').disabled = false;
+    // show live preview on the setup screen too, by moving into capture layout early
+  } catch (err) { showSetupError(err); }
+});
+
+function showSetupError(err) {
+  const el = $('setupErr');
+  el.hidden = false;
+  el.textContent = 'Camera error: ' + err.message +
+    ' — if you opened this file directly and the camera is blocked, serve it locally: python3 -m http.server, then open http://localhost:8000';
+}
+
+/* ───────────────────────── capture flow ───────────────────────── */
+$('btnStart').addEventListener('click', startCapture);
+$('btnAbort').addEventListener('click', () => { aborted = true; finishCapture(); });
+
+async function startCapture() {
+  frames.forEach(f => URL.revokeObjectURL(f.url));
+  frames = []; recordedChunks = []; videoBlob = null; aborted = false;
+  show('capture');
+  $('dots').innerHTML = STEPS.map(() => '<span></span>').join('');
+  $('frameCount').textContent = '0';
+
+  // 3‑2‑1 countdown
+  const big = $('bigcount');
+  big.hidden = false;
+  for (const n of [3, 2, 1]) {
+    big.textContent = n;
+    await sleep(900);
+  }
+  big.hidden = true;
+
+  startRecorder();
+  startFrameGrabber();
+  runSteps(0);
+}
+
+function startRecorder() {
+  const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    .find(m => MediaRecorder.isTypeSupported(m)) || '';
+  recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12_000_000 });
+  recorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
+  recorder.start(1000);
+}
+
+function runSteps(i) {
+  if (i >= STEPS.length || aborted) { finishCapture(); return; }
+  const step = STEPS[i];
+  $('stepText').textContent = step.text;
+  $('stepSub').textContent = step.sub;
+  const dots = $('dots').children;
+  for (let d = 0; d < dots.length; d++) dots[d].className = d < i ? 'done' : d === i ? 'now' : '';
+  const totalLeft = STEPS.slice(i).reduce((a, s) => a + s.secs, 0);
+
+  const t0 = performance.now();
+  clearInterval(stepTimer);
+  stepTimer = setInterval(() => {
+    const elapsed = (performance.now() - t0) / 1000;
+    $('stepProgress').style.width = Math.min(100, elapsed / step.secs * 100) + '%';
+    $('timeLeft').textContent = Math.max(0, Math.ceil(totalLeft - elapsed)) + 's left';
+    if (elapsed >= step.secs) { clearInterval(stepTimer); runSteps(i + 1); }
+  }, 100);
+}
+
+/* ───────────────────────── frame grabbing + sharpness ───────────────────────── */
+const grabCanvas = document.createElement('canvas');
+const scoreCanvas = document.createElement('canvas');
+let grabBusy = false;
+
+function startFrameGrabber() {
+  grabTimer = setInterval(() => {
+    if (grabBusy) return;
+    const v = $('preview');
+    if (!v.videoWidth) return;
+    grabBusy = true;
+    grabCanvas.width = v.videoWidth;
+    grabCanvas.height = v.videoHeight;
+    grabCanvas.getContext('2d').drawImage(v, 0, 0);
+    const score = sharpness(grabCanvas);
+    grabCanvas.toBlob(blob => {
+      if (blob) {
+        frames.push({ blob, url: URL.createObjectURL(blob), score, selected: true, index: frames.length });
+        $('frameCount').textContent = frames.length;
+      }
+      grabBusy = false;
+    }, 'image/jpeg', JPEG_QUALITY);
+  }, FRAME_INTERVAL_MS);
+}
+
+// Variance of a 4-neighbour Laplacian on a downscaled grayscale copy.
+function sharpness(srcCanvas) {
+  const w = 128;
+  const h = Math.max(8, Math.round(srcCanvas.height / srcCanvas.width * w));
+  scoreCanvas.width = w; scoreCanvas.height = h;
+  const ctx = scoreCanvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(srcCanvas, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const g = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) g[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
+  let sum = 0, sumSq = 0, n = 0;
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x;
+      const lap = g[i - 1] + g[i + 1] + g[i - w] + g[i + w] - 4 * g[i];
+      sum += lap; sumSq += lap * lap; n++;
+    }
+  }
+  const mean = sum / n;
+  return sumSq / n - mean * mean;
+}
+
+/* ───────────────────────── finish & review ───────────────────────── */
+function finishCapture() {
+  clearInterval(stepTimer);
+  clearInterval(grabTimer);
+  if (recorder && recorder.state !== 'inactive') {
+    recorder.onstop = () => {
+      videoBlob = new Blob(recordedChunks, { type: recorder.mimeType || 'video/webm' });
+      enterReview();
+    };
+    recorder.stop();
+  } else {
+    enterReview();
+  }
+}
+
+function enterReview() {
+  if (aborted && frames.length === 0) { show('setup'); return; }
+  autoSelectSharp();
+  renderGrid();
+  show('review');
+}
+
+function autoSelectSharp() {
+  const scores = frames.map(f => f.score).sort((a, b) => a - b);
+  const median = scores[Math.floor(scores.length / 2)] || 0;
+  const threshold = median * 0.4;
+  frames.forEach(f => { f.selected = f.score >= threshold; f.blurry = f.score < threshold; });
+}
+
+function renderGrid() {
+  const grid = $('grid');
+  grid.innerHTML = '';
+  for (const f of frames) {
+    const div = document.createElement('div');
+    div.className = 'thumb' + (f.selected ? ' selected' : '');
+    div.innerHTML = `<img src="${f.url}" alt="frame ${f.index}">` +
+      `<span class="badge${f.blurry ? ' blur' : ''}">${f.blurry ? 'blurry' : '#' + f.index}</span>`;
+    div.onclick = () => { f.selected = !f.selected; div.classList.toggle('selected', f.selected); updateStats(); };
+    grid.appendChild(div);
+  }
+  updateStats();
+}
+
+function updateStats() {
+  const sel = frames.filter(f => f.selected).length;
+  $('reviewStats').innerHTML =
+    `<b>${sel}</b> of <b>${frames.length}</b> frames selected · video ${videoBlob ? (videoBlob.size / 1e6).toFixed(1) + ' MB' : 'n/a'}`;
+  $('btnZip').disabled = sel === 0;
+}
+
+$('btnSharp').addEventListener('click', () => { autoSelectSharp(); renderGrid(); });
+$('btnAgain').addEventListener('click', () => { show('setup'); });
+$('btnVideo').addEventListener('click', () => {
+  if (videoBlob) download(videoBlob, stamp() + '_take.webm');
+});
+$('btnZip').addEventListener('click', async () => {
+  const btn = $('btnZip');
+  btn.disabled = true; btn.textContent = 'Zipping…';
+  try {
+    const selected = frames.filter(f => f.selected);
+    const entries = [];
+    for (const f of selected) {
+      entries.push({
+        name: `frame_${String(f.index).padStart(4, '0')}.jpg`,
+        data: new Uint8Array(await f.blob.arrayBuffer()),
+      });
+    }
+    download(makeZip(entries), stamp() + '_frames.zip');
+  } finally {
+    btn.textContent = 'Download selected frames (.zip)';
+    updateStats();
+  }
+});
+
+/* ───────────────────────── helpers ───────────────────────── */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const stamp = () => new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+
+function download(blob, name) {
+  const a = $('dlAnchor');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
+}
+
+/* Minimal ZIP writer (store method, no compression — JPEGs are already compressed). */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(data) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) c = CRC_TABLE[(c ^ data[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function makeZip(entries) {
+  const enc = new TextEncoder();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const parts = [], central = [];
+  let offset = 0;
+
+  for (const { name, data } of entries) {
+    const nameBytes = enc.encode(name);
+    const crc = crc32(data);
+    const local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true);
+    local.setUint16(4, 20, true);          // version needed
+    local.setUint16(8, 0, true);           // store
+    local.setUint16(10, dosTime, true);
+    local.setUint16(12, dosDate, true);
+    local.setUint32(14, crc, true);
+    local.setUint32(18, data.length, true);
+    local.setUint32(22, data.length, true);
+    local.setUint16(26, nameBytes.length, true);
+    parts.push(new Uint8Array(local.buffer), nameBytes, data);
+
+    const cent = new DataView(new ArrayBuffer(46));
+    cent.setUint32(0, 0x02014b50, true);
+    cent.setUint16(4, 20, true);
+    cent.setUint16(6, 20, true);
+    cent.setUint16(10, 0, true);
+    cent.setUint16(12, dosTime, true);
+    cent.setUint16(14, dosDate, true);
+    cent.setUint32(16, crc, true);
+    cent.setUint32(20, data.length, true);
+    cent.setUint32(24, data.length, true);
+    cent.setUint16(28, nameBytes.length, true);
+    cent.setUint32(42, offset, true);
+    central.push(new Uint8Array(cent.buffer), nameBytes);
+    offset += 30 + nameBytes.length + data.length;
+  }
+
+  const centralSize = central.reduce((a, p) => a + p.length, 0);
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0, 0x06054b50, true);
+  eocd.setUint16(8, entries.length, true);
+  eocd.setUint16(10, entries.length, true);
+  eocd.setUint32(12, centralSize, true);
+  eocd.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(eocd.buffer)], { type: 'application/zip' });
+}
+</script>
+</body>
+</html>
