@@ -14,6 +14,53 @@ export const maxDuration = 120;
 
 const AUDIO = /\.(m4a|mp3|mp4|wav|aac|ogg|webm|amr|caf)$/i;
 
+/**
+ * Get the actual audio.
+ *
+ * The inbound webhook describes an attachment without carrying it: filename,
+ * content type, size, an id — and no bytes and no URL. Reaching for `content`
+ * there yields undefined, which is what killed the first memo that got this
+ * far. The content sits behind a second, authenticated call that hands back a
+ * short-lived signed `download_url`.
+ *
+ * The two inline branches come first because they cost nothing to keep and mean
+ * a payload that does carry its own bytes still works.
+ */
+async function loadAudio(emailId: string, att: any): Promise<Blob> {
+  if (att.content_url) {
+    const res = await fetch(att.content_url);
+    if (!res.ok) throw new Error(`content_url fetch failed: ${res.status}`);
+    return new Blob([await res.arrayBuffer()], { type: att.content_type || '' });
+  }
+  if (att.content) {
+    return new Blob([Buffer.from(att.content, 'base64')], { type: att.content_type || '' });
+  }
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error('RESEND_API_KEY is required to download an inbound attachment');
+  if (!emailId || !att.id) {
+    throw new Error(`cannot locate attachment (email_id=${emailId || 'missing'}, id=${att.id || 'missing'})`);
+  }
+
+  const lookup = await fetch(
+    `https://api.resend.com/emails/receiving/${emailId}/attachments/${att.id}`,
+    { headers: { Authorization: `Bearer ${key}` } },
+  );
+  if (!lookup.ok) {
+    const detail = await lookup.text().catch(() => '');
+    throw new Error(`attachment lookup failed: ${lookup.status} ${detail}`.slice(0, 300));
+  }
+
+  const meta = await lookup.json();
+  if (!meta?.download_url) throw new Error('attachment lookup returned no download_url');
+
+  // Signed and short-lived, so it is fetched now rather than stored.
+  const file = await fetch(meta.download_url);
+  if (!file.ok) throw new Error(`attachment download failed: ${file.status}`);
+
+  return new Blob([await file.arrayBuffer()], { type: att.content_type || 'application/octet-stream' });
+}
+
 export async function POST(req: NextRequest) {
   const raw = await req.text();
 
@@ -105,12 +152,10 @@ export async function POST(req: NextRequest) {
    */
   let stage = 'fetch audio';
   try {
-    const bytes = audio.content_url
-      ? await (await fetch(audio.content_url)).arrayBuffer()
-      : Buffer.from(audio.content, 'base64');
+    const clip = await loadAudio(payload.email_id || payload.id || '', audio);
 
     stage = 'transcribe';
-    const transcript = await transcribe(new Blob([bytes]), audio.filename);
+    const transcript = await transcribe(clip, audio.filename);
 
     stage = 'extract';
     const extraction = await extract(transcript);
