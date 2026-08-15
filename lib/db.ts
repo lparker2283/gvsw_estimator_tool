@@ -25,6 +25,11 @@ export const db = {
     const { data } = await sb().from('jobs').select('*').eq('token', token).maybeSingle();
     return data;
   },
+  // Used to recognise a webhook retry before it costs anything.
+  async getJobByEventId(eventId: string) {
+    const { data } = await sb().from('jobs').select('id').eq('event_id', eventId).maybeSingle();
+    return data;
+  },
   async updateJob(id: string, patch: any) {
     const { error } = await sb().from('jobs').update(patch).eq('id', id);
     if (error) throw error;

@@ -49,6 +49,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'bad signature' }, { status: 401 });
   }
 
+  /**
+   * Svix reuses its message id across every retry of the same delivery, which
+   * makes it the natural idempotency key. Checked before any work: a retry that
+   * arrives after the job was written costs one indexed lookup instead of a
+   * second transcription, a second extraction, a second row, and a second email
+   * to Dan carrying a different link to the same memo.
+   */
+  const eventId = req.headers.get('svix-id') || '';
+  if (eventId) {
+    const seen = await db.getJobByEventId(eventId);
+    if (seen) {
+      console.warn('[inbound] duplicate delivery ignored.', { eventId, job: seen.id });
+      return NextResponse.json({ ok: true, deduped: true, job: seen.id });
+    }
+  }
+
   const envelope = JSON.parse(raw);
 
   /**
@@ -106,15 +122,36 @@ export async function POST(req: NextRequest) {
       .slice(0, 24);
 
     stage = 'create job';
-    const job = await db.createJob({
-      from_email: from,
-      transcript,
-      category: extraction.category,
-      extraction,
-      questions: extraction.questions,
-      token,
-      status: 'awaiting_answers',
-    });
+    let job;
+    try {
+      job = await db.createJob({
+        from_email: from,
+        transcript,
+        category: extraction.category,
+        extraction,
+        questions: extraction.questions,
+        token,
+        event_id: eventId || null,
+        status: 'awaiting_answers',
+      });
+    } catch (e: any) {
+      /**
+       * 23505 is unique_violation. The check above catches a retry that arrives
+       * after the first one finished; this catches the narrower case of two
+       * deliveries in flight together, where both passed the check before either
+       * inserted. The row that landed first is the real one — stop here rather
+       * than send Dan a second link.
+       */
+      if (e?.code === '23505' && eventId) {
+        const winner = await db.getJobByEventId(eventId);
+        console.warn('[inbound] concurrent duplicate lost the race; keeping the first job.', {
+          eventId,
+          job: winner?.id,
+        });
+        return NextResponse.json({ ok: true, deduped: true, job: winner?.id });
+      }
+      throw e;
+    }
 
     // The job is saved by this point. If the reply fails the work is not lost —
     // the row is there, and the link can be resent by hand.
