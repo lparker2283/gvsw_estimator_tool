@@ -9,6 +9,7 @@ import { transcribe } from '@/lib/transcribe';
 import { extract } from '@/lib/extract';
 import { db } from '@/lib/db';
 import { sendQuestionsEmail } from '@/lib/mail';
+import { redact } from '@/lib/secrets';
 
 export const maxDuration = 120;
 
@@ -231,7 +232,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, job: job.id, questions: extraction.questions.length });
   } catch (err) {
     console.error(`[inbound] failed during: ${stage}`, {
-      message: (err as Error).message,
+      message: redact((err as Error).message ?? ''),
       from,
       filename: audio.filename,
     });
@@ -247,7 +248,7 @@ export async function POST(req: NextRequest) {
      */
     // 500 so Svix retries, and so this is visibly distinct from the silent skip.
     return NextResponse.json(
-      { error: 'processing failed', stage, detail: (err as Error).message?.slice(0, 400) },
+      { error: 'processing failed', stage, detail: redact((err as Error).message ?? '').slice(0, 400) },
       { status: 500 },
     );
   }
