@@ -9,6 +9,8 @@
  * Whisper's `prompt` field biases decoding toward the terms below.
  */
 
+import { envSecret, redact } from '@/lib/secrets';
+
 const VOCAB = [
   // Rochester-area places Dan actually works
   'Pittsford', 'Penfield', 'Brighton', 'Irondequoit', 'Fairport', 'Webster',
@@ -25,7 +27,8 @@ const VOCAB = [
 const PROMPT = `Masonry contractor field memo, Rochester New York. Likely terms: ${VOCAB}.`;
 
 export async function transcribe(audio: Blob, filename = 'memo.m4a'): Promise<string> {
-  const provider = process.env.TRANSCRIBE_PROVIDER || 'groq';
+  // Trimmed for the same reason the keys are: pasted env values arrive with company.
+  const provider = (process.env.TRANSCRIBE_PROVIDER || 'groq').split(/[\r\n]/)[0].trim();
 
   if (provider === 'deepgram') {
     // Nova-3 keyterm boosting is more surgical than a Whisper prompt.
@@ -33,10 +36,10 @@ export async function transcribe(audio: Blob, filename = 'memo.m4a'): Promise<st
     const terms = VOCAB.split(', ').map(t => `&keyterm=${encodeURIComponent(t)}`).join('');
     const r = await fetch(`https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true${terms}`, {
       method: 'POST',
-      headers: { Authorization: `Token ${process.env.DEEPGRAM_API_KEY}` },
+      headers: { Authorization: `Token ${envSecret('DEEPGRAM_API_KEY') ?? ''}` },
       body: audio,
     });
-    if (!r.ok) throw new Error(`deepgram ${r.status}: ${await r.text()}`);
+    if (!r.ok) throw new Error(redact(`deepgram ${r.status}: ${await r.text()}`));
     const j = await r.json();
     return j.results.channels[0].alternatives[0].transcript;
   }
@@ -46,7 +49,8 @@ export async function transcribe(audio: Blob, filename = 'memo.m4a'): Promise<st
   const url = isGroq
     ? 'https://api.groq.com/openai/v1/audio/transcriptions'
     : 'https://api.openai.com/v1/audio/transcriptions';
-  const key = isGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY;
+  const key = envSecret(isGroq ? 'GROQ_API_KEY' : 'OPENAI_API_KEY');
+  if (!key) throw new Error(`${isGroq ? 'GROQ_API_KEY' : 'OPENAI_API_KEY'} is not set`);
   const model = isGroq ? 'whisper-large-v3-turbo' : 'whisper-1';
 
   const form = new FormData();
@@ -57,6 +61,6 @@ export async function transcribe(audio: Blob, filename = 'memo.m4a'): Promise<st
   form.append('temperature', '0');          // deterministic; we want the literal words
 
   const r = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${key}` }, body: form });
-  if (!r.ok) throw new Error(`${provider} ${r.status}: ${await r.text()}`);
+  if (!r.ok) throw new Error(redact(`${provider} ${r.status}: ${await r.text()}`));
   return (await r.text()).trim();
 }
