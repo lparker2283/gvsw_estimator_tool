@@ -82,6 +82,26 @@ async function loadAudio(emailId: string, att: any): Promise<Blob> {
   return new Blob([await file.arrayBuffer()], { type: att.content_type || 'application/octet-stream' });
 }
 
+/**
+ * Unwrap an error down its `cause` chain.
+ *
+ * SDKs routinely swallow the real reason. Anthropic's APIConnectionError, for
+ * one, defaults its message to a bare "Connection error." and files the actual
+ * failure under `cause` — which said nothing at all about a malformed key.
+ */
+function describe(err: unknown): string {
+  const parts: string[] = [];
+  const seen = new Set<unknown>();
+  let cur: any = err;
+  while (cur && parts.length < 4 && !seen.has(cur)) {
+    seen.add(cur);
+    const message = typeof cur.message === 'string' ? cur.message : String(cur);
+    if (message && !parts.includes(message)) parts.push(message);
+    cur = cur.cause;
+  }
+  return parts.join(' <- ');
+}
+
 export async function POST(req: NextRequest) {
   const raw = await req.text();
 
@@ -232,7 +252,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, job: job.id, questions: extraction.questions.length });
   } catch (err) {
     console.error(`[inbound] failed during: ${stage}`, {
-      message: redact((err as Error).message ?? ''),
+      message: redact(describe(err)),
       from,
       filename: audio.filename,
     });
@@ -248,7 +268,7 @@ export async function POST(req: NextRequest) {
      */
     // 500 so Svix retries, and so this is visibly distinct from the silent skip.
     return NextResponse.json(
-      { error: 'processing failed', stage, detail: redact((err as Error).message ?? '').slice(0, 400) },
+      { error: 'processing failed', stage, detail: redact(describe(err)).slice(0, 400) },
       { status: 500 },
     );
   }

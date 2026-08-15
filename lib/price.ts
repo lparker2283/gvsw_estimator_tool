@@ -3,13 +3,16 @@
  * Two methods are always computed and the disagreement is reported, never hidden.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { envSecret } from '@/lib/secrets';
 import ratecard from '../data/ratecard.json';
 
 // Built on first use: the SDK throws without a key, and Next imports this
 // module while collecting page data during the build, where no key exists.
 let _anthropic: Anthropic | null = null;
 function anthropic() {
-  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  // envSecret, not process.env: a key pasted with the next .env line attached
+  // fails inside fetch, and the SDK reports that as a bare "Connection error."
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: envSecret('ANTHROPIC_API_KEY') });
   return _anthropic;
 }
 
