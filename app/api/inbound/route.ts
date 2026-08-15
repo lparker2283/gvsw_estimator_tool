@@ -42,17 +42,37 @@ async function loadAudio(emailId: string, att: any): Promise<Blob> {
     throw new Error(`cannot locate attachment (email_id=${emailId || 'missing'}, id=${att.id || 'missing'})`);
   }
 
-  const lookup = await fetch(
+  /**
+   * Two candidate routes. The SDK puts received mail under `/emails/receiving`
+   * and sent mail under `/emails`, but which one an account's API actually
+   * serves is not something that can be confirmed from here, and each guess
+   * costs a deploy and a memo. So try both and report what each said.
+   */
+  const routes = [
     `https://api.resend.com/emails/receiving/${emailId}/attachments/${att.id}`,
-    { headers: { Authorization: `Bearer ${key}` } },
-  );
-  if (!lookup.ok) {
-    const detail = await lookup.text().catch(() => '');
-    throw new Error(`attachment lookup failed: ${lookup.status} ${detail}`.slice(0, 300));
+    `https://api.resend.com/emails/${emailId}/attachments/${att.id}`,
+  ];
+
+  const tried: string[] = [];
+  let meta: any = null;
+
+  for (const url of routes) {
+    const lookup = await fetch(url, { headers: { Authorization: `Bearer ${key}` } });
+    if (lookup.ok) {
+      meta = await lookup.json();
+      break;
+    }
+    const detail = (await lookup.text().catch(() => '')).slice(0, 200);
+    tried.push(`${lookup.status} ${url.replace('https://api.resend.com', '')}${detail ? ` — ${detail}` : ''}`);
+    // Only a missing route is worth a second attempt. A 401 means the key is
+    // wrong and the other route will say the same thing.
+    if (lookup.status !== 404) break;
   }
 
-  const meta = await lookup.json();
-  if (!meta?.download_url) throw new Error('attachment lookup returned no download_url');
+  if (!meta) throw new Error(`attachment lookup failed: ${tried.join(' | ')}`);
+  if (!meta.download_url) {
+    throw new Error(`attachment lookup returned no download_url (keys: ${Object.keys(meta).join(',')})`);
+  }
 
   // Signed and short-lived, so it is fetched now rather than stored.
   const file = await fetch(meta.download_url);
@@ -215,7 +235,20 @@ export async function POST(req: NextRequest) {
       from,
       filename: audio.filename,
     });
+    /**
+     * The message goes in the body, not only the log. Resend's dashboard shows
+     * the response verbatim, and its delivery history is reachable in a way the
+     * platform logs are not always. `stage` alone named the step but never the
+     * reason, which cost a full deploy-and-resend cycle to learn.
+     *
+     * Safe to expose: the route only reaches here after a verified signature,
+     * so nothing but Resend can provoke it, and these strings carry status
+     * codes and field names — never the API key.
+     */
     // 500 so Svix retries, and so this is visibly distinct from the silent skip.
-    return NextResponse.json({ error: 'processing failed', stage }, { status: 500 });
+    return NextResponse.json(
+      { error: 'processing failed', stage, detail: (err as Error).message?.slice(0, 400) },
+      { status: 500 },
+    );
   }
 }
