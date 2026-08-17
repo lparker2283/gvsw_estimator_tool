@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import type { Doc } from './docs';
+import { brandFor } from './brand';
 
 // Built on first use: the SDK throws without a key, and Next imports this
 // module while collecting page data during the build, where no key exists.
@@ -10,33 +11,41 @@ function resend() {
 }
 const FROM = process.env.MAIL_FROM!;
 
-const wrap = (body: string) => `
-<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
-  font-size:16px;line-height:1.6;color:#33322e;max-width:520px">
-  <div style="font-size:11px;letter-spacing:.2em;color:#3f4a3c;font-weight:700;margin-bottom:18px">
-    GENESEE VALLEY STONE WORKS</div>${body}</div>`;
+const wrap = (body: string, brandKey?: string) => {
+  const b = brandFor(brandKey);
+  return `
+<div style="font-family:${b.font};font-size:16px;line-height:1.6;color:${b.ink};max-width:440px">
+  <div style="font-size:11px;letter-spacing:.2em;color:${b.accent};font-weight:700;margin-bottom:18px">
+    ${b.wordmark}</div>${body}</div>`;
+};
 
-export async function sendQuestionsEmail(o: { to: string; count: number; link: string; transcript: string }) {
+export async function sendQuestionsEmail(
+  o: { to: string; count: number; link: string; transcript: string; brand?: string },
+) {
+  const b = brandFor(o.brand);
   const noun = o.count === 1 ? 'question' : 'questions';
   await resend().emails.send({
     from: FROM, to: o.to,
-    subject: `Got your memo — ${o.count} ${noun}, about a minute`,
+    // The escape hatch used to be explained here, ahead of a button that leads
+    // to a page where it is visibly one of the options. Reassurance repeated is
+    // reassurance doubted; the page carries it structurally, so this is just
+    // the count and the link.
+    subject: `Got your memo — ${o.count} ${noun}`,
     html: wrap(`
-      <p>Got it, and transcribed it.</p>
-      <p><b>${o.count} ${noun}</b> before I can price it — the ones where guessing would actually cost you money. Should take about a minute.</p>
+      <p>Transcribed. <b>${o.count} ${noun}</b> and I can price it.</p>
       <p style="margin:26px 0">
-        <a href="${o.link}" style="display:inline-block;background:#3f4a3c;color:#fff;text-decoration:none;
+        <a href="${o.link}" style="display:inline-block;background:${b.accent};color:${b.surface};text-decoration:none;
           padding:15px 30px;border-radius:8px;font-weight:600;font-size:17px">Answer the ${noun}</a></p>
-      <p style="font-size:14px;color:#807b72">Every one has a "don't know — measure on site" option. That's a real answer, not a cop-out; the documents handle it.</p>
       <details style="margin-top:24px">
-        <summary style="font-size:13px;color:#807b72;cursor:pointer">What I heard</summary>
-        <p style="font-size:13px;color:#807b72;font-style:italic;margin-top:10px">${o.transcript}</p>
-      </details>`),
+        <summary style="font-size:13px;color:${b.muted};cursor:pointer">What I heard</summary>
+        <p style="font-size:13px;color:${b.muted};font-style:italic;margin-top:10px">${o.transcript}</p>
+      </details>`, o.brand),
   });
 }
 
-export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: boolean }) {
-  const list = o.docs.map(d => `<li><b>${d.name}</b> <span style="color:#807b72">— ${d.audience === 'dan' ? 'yours' : 'client-facing'}</span></li>`).join('');
+export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: boolean; brand?: string }) {
+  const b = brandFor(o.brand);
+  const list = o.docs.map(d => `<li><b>${d.name}</b> <span style="color:${b.muted}">— ${d.audience === 'dan' ? 'yours' : 'client-facing'}</span></li>`).join('');
   const problems = o.spec._validation?.length
     ? `<p style="color:#8a3b2a"><b>Validation flagged ${o.spec._validation.length}:</b><br>${o.spec._validation.join('<br>')}</p>` : '';
 
@@ -47,11 +56,11 @@ export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: b
       : `${o.spec.proposal_no} — your estimate`,
     html: wrap(`
       ${o.review ? '<p style="color:#8a3b2a"><b>Review copy.</b> Nothing has gone to Dan.</p>' : ''}
-      <p>Four documents attached, and in the GVSW Estimates folder in Drive — so they'll show up on your reMarkable.</p>
+      <p>Four documents attached, and in the ${b.driveFolder} folder in Drive.</p>
       <ul>${list}</ul>
-      <p><b>Start with the field brief.</b> Mark it up and send it back — that's how the tool learns what it got wrong.</p>
+      <p><b>Start with the field brief.</b> Mark it up and send it back.</p>
       ${problems}
-      <p style="font-size:14px;color:#807b72">Nothing here is committed. The tool proposes; you commit.</p>`),
+      <p style="font-size:14px;color:${b.muted}">Nothing here is committed.</p>`, o.brand),
     attachments: o.docs.map(d => ({ filename: d.filename, content: d.pdf.toString('base64') })),
   });
 }

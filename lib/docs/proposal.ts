@@ -1,4 +1,7 @@
 import { page, money, esc, CO } from './shared';
+import { brandFor, DEFAULT_BRAND } from '../brand';
+
+const B = brandFor(DEFAULT_BRAND);
 
 /** Client-facing, mirrors Dan's existing GVSW template sections 1-7. */
 export function proposal(spec: any) {
@@ -12,7 +15,7 @@ export function proposal(spec: any) {
         ${esc(CO.city)}<br>${esc(CO.phone)}<br>${esc(CO.email)}<br>${esc(CO.web)}</td>
       <td style="border:none;padding:0;text-align:center">
         <div style="font-size:16pt;font-weight:700;letter-spacing:.06em">PROJECT PROPOSAL</div>
-        <div style="font-size:9pt;color:#3f4a3c;letter-spacing:.08em">${esc(CO.name)}</div></td>
+        <div style="font-size:9pt;color:${B.accent};letter-spacing:.08em">${esc(CO.name)}</div></td>
       <td style="border:none;padding:0;width:28%;font-size:8.5pt;text-align:right">
         <b>${esc(spec.proposal_no || '')}</b><br>${esc(spec.date_issued || '')}<br>Prepared by Dan Quinn</td>
     </tr></table>
