@@ -16,6 +16,14 @@ export const maxDuration = 120;
 const AUDIO = /\.(m4a|mp3|mp4|wav|aac|ogg|webm|amr|caf)$/i;
 
 /**
+ * How many times a memo may fail before this endpoint stops asking for another
+ * delivery. Svix spaces its retries over hours, so three attempts is roughly
+ * half an hour of patience — enough to outlast a provider having a bad minute,
+ * short of the streak that gets a webhook switched off.
+ */
+const MAX_ATTEMPTS = Number(process.env.INBOUND_MAX_ATTEMPTS || 3);
+
+/**
  * Get the actual audio.
  *
  * The inbound webhook describes an attachment without carrying it: filename,
@@ -100,6 +108,44 @@ function describe(err: unknown): string {
     cur = cur.cause;
   }
   return parts.join(' <- ');
+}
+
+/**
+ * Would delivering this memo again plausibly go any better?
+ *
+ * Only for failures a later attempt could survive — a rate limit, a provider
+ * having a bad minute, a socket that dropped. A malformed key or a rejected
+ * request fails identically every time, and retrying it is what spends the
+ * endpoint's health: Resend disabled this webhook after five days of 500s that
+ * no retry could ever have fixed.
+ *
+ * The default is false, deliberately. Declining to retry costs one memo, which
+ * is written down and recoverable; retrying something unfixable costs every
+ * memo that comes after it.
+ */
+function isRetryable(err: unknown): boolean {
+  const chain: any[] = [];
+  const seen = new Set<unknown>();
+  let cur: any = err;
+  while (cur && chain.length < 4 && !seen.has(cur)) {
+    seen.add(cur);
+    chain.push(cur);
+    cur = cur.cause;
+  }
+
+  const text = chain.map(e => (typeof e?.message === 'string' ? e.message : String(e))).join(' ');
+
+  // A value the runtime refused is malformed, not unlucky — and this shape
+  // arrives wrapped in a connection error, which would otherwise read as
+  // transient. It is the exact failure that started the streak.
+  if (/invalid header|is not a legal|malformed|invalid.*value/i.test(text)) return false;
+
+  const status = chain.map(e => e?.status ?? e?.statusCode).find((s: any) => typeof s === 'number');
+  if (typeof status === 'number') return status === 408 || status === 429 || status >= 500;
+
+  // No status at all means the request never reached the far end.
+  return /ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|socket hang up|network|timed ?out|aborted/i
+    .test(text);
 }
 
 export async function POST(req: NextRequest) {
@@ -251,11 +297,45 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, job: job.id, questions: extraction.questions.length });
   } catch (err) {
+    const detail = redact(describe(err));
+    const retryable = isRetryable(err);
+
     console.error(`[inbound] failed during: ${stage}`, {
-      message: redact(describe(err)),
+      message: detail,
       from,
       filename: audio.filename,
+      retryable,
     });
+
+    /**
+     * Write the failure down before deciding what to tell Resend. The row is
+     * what makes it safe to stop retrying: the memo is recoverable from
+     * email_id and attachment_id, so giving up loses a delivery, not the work.
+     */
+    let attempts = 1;
+    try {
+      attempts = await db.recordInboundFailure({
+        event_id: eventId || null,
+        from_email: from || null,
+        filename: audio.filename || null,
+        email_id: payload.email_id || payload.id || null,
+        attachment_id: audio.id || null,
+        stage,
+        detail: detail.slice(0, 2000),
+        retryable,
+      });
+    } catch (e) {
+      // Nothing was recorded, so nothing makes giving up safe. Ask for the
+      // retry: a memo delivered twice is recoverable, one dropped silently is not.
+      console.error('[inbound] could not record the failure.', { message: redact(describe(e)) });
+      return NextResponse.json(
+        { error: 'processing failed', stage, detail: detail.slice(0, 400), recorded: false },
+        { status: 500 },
+      );
+    }
+
+    const again = retryable && attempts < MAX_ATTEMPTS;
+
     /**
      * The message goes in the body, not only the log. Resend's dashboard shows
      * the response verbatim, and its delivery history is reachable in a way the
@@ -265,11 +345,15 @@ export async function POST(req: NextRequest) {
      * Safe to expose: the route only reaches here after a verified signature,
      * so nothing but Resend can provoke it, and these strings carry status
      * codes and field names — never the API key.
+     *
+     * The status is the part that matters to the endpoint's survival. 500 asks
+     * Svix to try again and is worth spending only where another attempt could
+     * succeed; everything else answers 200 — the delivery is accounted for, and
+     * a webhook that keeps failing is a webhook Resend eventually turns off.
      */
-    // 500 so Svix retries, and so this is visibly distinct from the silent skip.
     return NextResponse.json(
-      { error: 'processing failed', stage, detail: redact(describe(err)).slice(0, 400) },
-      { status: 500 },
+      { error: 'processing failed', stage, detail: detail.slice(0, 400), retryable, attempts, willRetry: again },
+      { status: again ? 500 : 200 },
     );
   }
 }

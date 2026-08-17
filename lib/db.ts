@@ -30,6 +30,36 @@ export const db = {
     const { data } = await sb().from('jobs').select('id').eq('event_id', eventId).maybeSingle();
     return data;
   },
+  /**
+   * Write down a delivery that failed after verification, and say how many
+   * times it has now failed.
+   *
+   * Keyed by event_id so a Svix retry lands on the same row and raises the
+   * count instead of adding a second one. That count is what lets the route
+   * stop asking for retries: a memo it gives up on is still here, with the
+   * email and attachment ids needed to fetch the audio again by hand.
+   */
+  async recordInboundFailure(row: any): Promise<number> {
+    if (row.event_id) {
+      const { data: prior } = await sb()
+        .from('inbound_failures')
+        .select('id, attempts')
+        .eq('event_id', row.event_id)
+        .maybeSingle();
+      if (prior) {
+        const attempts = (prior.attempts ?? 1) + 1;
+        const { error } = await sb()
+          .from('inbound_failures')
+          .update({ ...row, attempts, updated_at: new Date().toISOString() })
+          .eq('id', prior.id);
+        if (error) throw error;
+        return attempts;
+      }
+    }
+    const { data, error } = await sb().from('inbound_failures').insert(row).select('attempts').single();
+    if (error) throw error;
+    return data?.attempts ?? 1;
+  },
   async updateJob(id: string, patch: any) {
     const { error } = await sb().from('jobs').update(patch).eq('id', id);
     if (error) throw error;
