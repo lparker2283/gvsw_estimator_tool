@@ -27,6 +27,31 @@ create index on jobs (created_at desc);
 -- repeat under a unique index.
 create unique index jobs_event_id_key on jobs (event_id);
 
+-- Deliveries that arrived, verified, and then failed to become a job.
+--
+-- A failed memo used to leave nothing behind but a 500 and a log line, and the
+-- 500 is what got the webhook disabled: Svix retries a failing endpoint, and a
+-- reason that a retry cannot fix — a bad key, a malformed value — fails every
+-- time until Resend switches the endpoint off. The row is what makes it safe to
+-- stop retrying: the memo is still recoverable by hand from email_id and
+-- attachment_id, so the endpoint can answer 200 and stay alive.
+create table inbound_failures (
+  id              uuid primary key default gen_random_uuid(),
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  event_id        text unique,    -- svix-id; a retry updates this row, never adds one
+  from_email      text,
+  filename        text,
+  email_id        text,           -- with attachment_id, enough to re-fetch the audio
+  attachment_id   text,
+  stage           text not null,  -- fetch audio | transcribe | extract | create job | ...
+  detail          text not null,  -- redacted, cause chain unwrapped
+  retryable       boolean not null default false,
+  attempts        int not null default 1
+);
+
+create index on inbound_failures (created_at desc);
+
 -- Every edit Dan makes, classified by type. Different failures, different fixes.
 create table corrections (
   id              uuid primary key default gen_random_uuid(),
