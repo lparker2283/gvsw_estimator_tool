@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { brandFor, DEFAULT_BRAND } from './brand';
 
 /**
  * Built on first use, not at import time. Next collects page data during the
@@ -72,7 +73,7 @@ export const db = {
     const { data } = await sb().from('config').select('next_proposal_no').eq('id', 1).single();
     const n = data?.next_proposal_no ?? 1;
     await sb().from('config').update({ next_proposal_no: n + 1 }).eq('id', 1);
-    return `GVSW-${new Date().getFullYear()}-${String(n).padStart(4, '0')}`;
+    return `${brandFor(DEFAULT_BRAND).proposalPrefix}-${new Date().getFullYear()}-${String(n).padStart(4, '0')}`;
   },
   async config() {
     const { data } = await sb().from('config').select('*').eq('id', 1).single();

@@ -18,6 +18,10 @@ function anthropic() {
 }
 const MAX_Q = Number(process.env.MAX_QUESTIONS || 5);
 
+/** The one sentence in this app that is worth being precise about. */
+export const ESCAPE_HATCH = "Don't know yet — measure on site";
+const ESCAPE_RE = /don.?t know|measure on site|not (yet )?(assessed|sure)|undetermined|unknown/i;
+
 export type Question = {
   id: string;
   q: string;
@@ -47,7 +51,7 @@ NON-NEGOTIABLE RULES
 
 4. SUPPRESS questions the memo already answered or made irrelevant. A chimney that vents nothing needs no liner question. Record what you suppressed and why — that is the work.
 
-5. EVERY question gets an "I don't know — measure on site" option. That answer is legitimate and the documents handle it. Never make him feel stupid for not knowing.
+5. EVERY question gets a "${ESCAPE_HATCH}" option, worded exactly that way. That answer is legitimate and the documents handle it. Carry that reassurance IN THE OPTION and nowhere else — never in prose, never as a sympathetic aside. The escape hatch is structural; it does not need to be talked about.
 
 6. Mark one option "(recommended)" ONLY where a default is genuinely defensible.
 
@@ -58,6 +62,16 @@ NON-NEGOTIABLE RULES
 9. Rochester specifics that are specifications, not preferences: pre-1930 masonry needs Type N or NHL lime mortar (Portland spalls the face); water-contact surfaces need hydraulic cement (Type S will not hold); 48" frost line in Monroe County; 100+ freeze-thaw cycles a year.
 
 10. Tax: new installation or COMPLETE replacement is a capital improvement; repair or PARTIAL replacement is taxable on the full billed amount. Classify per line, never per job.
+
+LENGTH
+
+He reads this on a phone, standing on a job site, and he is not a words guy. Every word past the decision is a word in his way.
+
+11. QUESTION: at most 8 words, and it must stand on its own — name the thing AND what is being asked about it. "What shape is the crown in?" not "What's the crown doing?" Do not list the options inside the question; the buttons already show them. "What's the scope?" not "What are we actually doing — repointing it, rebuilding the part above the roof, or taking the whole thing down?"
+
+12. WHY: at most 15 words, and only the consequence — a number, a material spec, a liability. It is hidden behind a tap and read by a professional who already understands masonry, so state the stake, never the reasoning. Omit it entirely when the question is self-evident.
+
+13. OPTION LABELS: at most 4 words, in the words a mason would SAY, not the words a condition report would print. "Looks fine" not "Sound". "Shot" not "Failed". "Needs replacing" not "Requires replacement". A bare adjective that only makes sense underneath a heading is not an option label — it has to be readable as an answer to the question, out loud. No trailing explanation, no parentheticals other than the "(recommended)" marker.
 
 Return ONLY the JSON described by the tool schema.`;
 
@@ -103,12 +117,17 @@ export async function extract(transcript: string): Promise<Extraction> {
   const block: any = msg.content.find((c: any) => c.type === 'tool_use');
   const out = block.input as Extraction;
 
-  // Belt and braces: the "don't know" escape hatch is guaranteed, not hoped for.
-  out.questions = out.questions.slice(0, MAX_Q).map(q => ({
-    ...q,
-    options: q.options?.some(o => /don.?t know|measure on site/i.test(o))
-      ? q.options
-      : [...(q.options || []), "Don't know — measure on site"],
-  }));
+  /**
+   * The escape hatch is guaranteed, and guaranteed in these exact words.
+   *
+   * Any variant the model produced is stripped and the canonical string
+   * appended, rather than accepting whatever it wrote. "Yet" is the load-bearing
+   * word — it frames the gap as in progress rather than as a hole in what he
+   * knows — and a paraphrase drops it without ever looking wrong.
+   */
+  out.questions = out.questions.slice(0, MAX_Q).map(q => {
+    const others = (q.options || []).filter(o => !ESCAPE_RE.test(o));
+    return { ...q, options: [...others, ESCAPE_HATCH] };
+  });
   return out;
 }
