@@ -1,4 +1,4 @@
-# Setup status — 9 August 2026
+# Setup status — 24 August 2026
 
 ## Live and verified
 
@@ -51,27 +51,43 @@ are in `WIF-SETUP.md`; the short version:
 access** tab now, not **Permissions**. That relocation is what the old instructions
 dead-ended on.)*
 
+**Done since the 9th** — all four of the items that were blocked on Lindsey:
+redeploy, `RESEND_API_KEY`, the inbound webhook and its `RESEND_INBOUND_SECRET`,
+and the three orphan Namecheap records (`resend._domainkey`, TXT `send`, MX `send`)
+deleted with `send.mail` left alone.
+
 ## Blocked, needs you
 
-**1. Redeploy `gvsw-estimator-tool`.**
-Environment variables only reach a running deployment through a new build — Vercel says
-so itself after saving them. One click on Deployments → ⋯ → Redeploy. Left to you because
-it publishes to production.
+**1. Run the corrections migration.**
+`supabase/migrations/2026-08-24-corrections-event-id.sql` — SQL Editor, paste, Run.
+Adds `event_id` and `confidence` to `corrections` plus a unique index. Until it runs,
+a marked-up page that comes back cannot be logged, and a webhook retry would file
+every mark twice.
 
-**2. Resend API key + inbound webhook.**
-- <https://resend.com/api-keys> → Create → `RESEND_API_KEY`
-- Inbound route → webhook `https://<your-vercel-domain>/api/inbound` → copy the
-  signing secret to `RESEND_INBOUND_SECRET`.
-
-**3. Namecheap orphan cleanup.** Three stale records from the first, abandoned attempt at
-root-domain sending. Delete: TXT `resend._domainkey`, TXT `send`, MX `send`.
-**Do not touch `send.mail`** — that one is live and carries bounce handling.
-
-**4. First live run.** A real memo, end to end, with you watching the Drive folder.
+**2. First live run of each direction.**
+- A real memo in, watching the Drive folder. `HUMAN_IN_THE_LOOP=true` keeps the
+  documents coming to you rather than to Dan.
+- Then reply to that delivery with the PDF marked up, and check that rows land in
+  `corrections`. This path has never run against a real message.
 
 ## Still not built
 
-- Rate card: only brick, stone, chimney, historic are transcribed. Six categories missing.
-- Completeness engine exists for chimney only.
-- Correction ledger: schema and write path exist, nothing reads annotations yet.
-- Standing config: table seeded but empty, waiting on Dan's worksheet.
+- Rate card: only brick, stone, chimney, historic are transcribed. Six categories missing —
+  a patio or a foundation job still hits a wall.
+- Completeness engine exists for chimney only; every other category falls back to
+  generic reasoning.
+- Standing config: table seeded but empty, waiting on Dan's worksheet. Nothing reads it yet.
+- Client-facing documents: parked in `lib/docs/parked/`, deliberately unwired. They come
+  back when the ledger has taught the tool something worth putting in front of a client.
+- Multi-tenant: brand tokens exist and the page and email read from them, but the
+  documents still hardcode GVSW in `lib/docs/shared.ts` and no job carries a brand key.
+
+## Done, as of 24 August
+
+- Four documents collapsed to one internal brief for Dan, built around the five things
+  he needs before he can quote. The chimney-specific narrative is gone from the templates.
+- The correction loop closes: he replies to the delivery email with the marked-up PDF,
+  inbound routes on attachment type, Claude reads the marks against the numbered lines,
+  and prior corrections feed back into extraction and pricing.
+- `npm run smoke` renders the brief from two fixtures; `npm run email` renders the
+  delivery email. Neither needs a key or the network.
