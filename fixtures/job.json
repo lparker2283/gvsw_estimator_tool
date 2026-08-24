@@ -1,23 +1,6 @@
 {
-  "proposal_no": "GVSW-2026-0147 (placeholder — sequence not yet wired to a job register)",
+  "proposal_no": "GVSW-2026-0147",
   "date_issued": "2026-07-26",
-  "valid_until": "2026-09-15",
-  "prepared_by": "Dan Quinn",
-  "client": {
-    "name": "[Client name — to be filled by Dan]",
-    "address": "[Street address]",
-    "city_state_zip": "Pittsford, NY",
-    "phone": "[Phone]",
-    "email": "[Email]"
-  },
-  "project": {
-    "name": "Stone chimney — crack repair and stabilisation, upper section",
-    "site_address": "Pittsford, NY (wooded lot)",
-    "property_type": "Residential — historic character, not designated",
-    "start_date": "Upon access confirmation",
-    "completion_date": "Before winter — see Section 4"
-  },
-  "overview": "Genesee Valley Stone Works has assessed the stone chimney at the above property following a site consultation. The chimney is a large historic stone stack rising roughly two storeys, with visible cracking through the mortar joints in the upper section and some stones that appear to have shifted. The chimney is no longer in service and is enclosed within the house interior; the objective of this work is structural stabilisation of the upper section, not restoration to working condition.\n\nThe masonry work itself is contained — the affected zone is the top few feet, with under ten linear feet of cracking. The governing constraint on this project is not the repair but the approach to it. The chimney is reached by a narrow, uneven, unpaved flagstone path of roughly three feet, on a wooded lot, and the work sits more than twenty feet above grade. A conventional self-propelled lift is very unlikely to fit that approach, and scaffolding is not workable for a single operator. Access equipment must therefore be specified and quoted before a committed price for the project can be issued. That figure is deliberately absent from this proposal rather than estimated, and Section 2 marks it accordingly.",
   "scope": [
     {
       "task": "Access — tracked (spider) lift",
@@ -93,63 +76,6 @@
       "cost": 150
     }
   ],
-  "materials_note": "Material quantities in this table are estimates, not a take-off. Build date has NOT been confirmed. If the structure is pre-1930, lime mortar is a specification rather than a preference: Portland-based mortar is too hard for historic soft masonry and causes face spalling, so the repair visibly damages the thing it was meant to save. If it turns out to be later construction, the mortar spec and this line's rate both change. Stone matching on a historic stack is imperfect by nature; some visible variation should be expected and is not a defect. Material quantities below are estimates, not a take-off.",
-  "timeline": [
-    {
-      "phase": "Contract signed",
-      "target": "—",
-      "duration": "—",
-      "notes": "Deposit due at signing"
-    },
-    {
-      "phase": "Access site visit + measure",
-      "target": "Within 1 week",
-      "duration": "~1 hr",
-      "notes": "ASSUMED duration. Path, ground, chimney face area"
-    },
-    {
-      "phase": "Equipment quotation",
-      "target": "After site visit",
-      "duration": "a few days",
-      "notes": "ASSUMED. Gates the committed project price"
-    },
-    {
-      "phase": "Revised proposal with access figure",
-      "target": "—",
-      "duration": "—",
-      "notes": "Client approves before scheduling"
-    },
-    {
-      "phase": "Material ordering",
-      "target": "After approval",
-      "duration": "1–2 weeks",
-      "notes": "ASSUMED. Lime mortar and any stone match carry lead time"
-    },
-    {
-      "phase": "Lift delivery, siting, path protection",
-      "target": "TBD",
-      "duration": "1 day",
-      "notes": "ASSUMED. Solo — no tender to speed setup"
-    },
-    {
-      "phase": "Repoint and stone resets",
-      "target": "TBD",
-      "duration": "3 days",
-      "notes": "ASSUMED. Weather dependent"
-    },
-    {
-      "phase": "Top inspection and seal",
-      "target": "TBD",
-      "duration": "1 day",
-      "notes": "ASSUMED. After mortar cure"
-    },
-    {
-      "phase": "Strike, demobilise, joint walkthrough",
-      "target": "TBD",
-      "duration": "1 day",
-      "notes": "ASSUMED. Path condition inspected with client"
-    }
-  ],
   "totals": {
     "labor": 1850,
     "materials": 590,
@@ -162,128 +88,45 @@
     "subtotal_ex_access": 2440,
     "check": "1850 labour + 590 materials = 2440 scope subtotal, access excluded"
   },
-  "payment_schedule": [
+  "cross_check": {
+    "why": "The rate card prices masonry per unit — per square foot, per linear foot, per stone. Those bands assume normal access and a mason working with a tender. This job has a small quantity of work and a large quantity of getting to it. So the two legitimate ways to price it disagree, and the tool surfaces the disagreement rather than silently picking the one it likes.",
+    "method_a": {
+      "name": "Unit price, off the rate card",
+      "value": 2440,
+      "note": "Every line derived in Section 6. All-in per the card's Total Est. convention."
+    },
+    "method_b": {
+      "name": "Day rate, off the card's quick reference",
+      "low": 4190,
+      "high": 5870,
+      "note": "6 on-site days — the same 6 the lift is modelled at in Section 7b — at the card's mason rate of $75–110/hr over 8-hour days, plus $590 materials. Solo working, so no tender rate applies. Siting and strike days are Dan's time too."
+    },
+    "gap": "Unit pricing lands at $2,440. Day-rate pricing lands at $4,190–$5,870. The unit method is LOW by roughly $1,750–$3,430 — it does not merely differ from the day-rate method, it is under half of it at the top of the band.",
+    "reading": "This is not a rounding difference, it is the rate card telling on itself. Per-unit rates price PRODUCTION. On this job Dan is not mostly producing — he is positioning a machine, climbing, carrying stone one piece at a time, and repositioning. A small quantity in an awkward place costs day-rate money regardless of how few square feet it is.",
+    "recommendation": "Price this job on days, not units, and use the unit figure only as a floor. The rate card's own minimum-job clause ($350–600) exists for the same reason — it acknowledges that below a certain size, quantity stops predicting cost. This job is that case at a larger scale.",
+    "instruction": "Dan's call. The tool will not silently switch methods — it shows both and says which it would use.",
+    "headline": "Day rate. Not per square foot."
+  },
+  "tax_lines": [
     {
-      "milestone": "Deposit — contract signing",
-      "due": "Upon signing",
-      "amount": null
+      "line": "Whole project",
+      "cls": "Taxable repair",
+      "basis": "Dan stated explicitly: 'It is a repair job. It's not a new build.' NYS Publication 862 classifies repair and partial replacement of masonry as taxable; new installation and COMPLETE replacement are capital improvements. No line here reaches complete replacement."
     },
     {
-      "milestone": "Progress — equipment on site",
-      "due": "Day of lift delivery",
-      "amount": null
+      "line": "Equipment rental billed to client",
+      "cls": "Taxable",
+      "basis": "Follows the character of the work it serves."
     },
     {
-      "milestone": "Final balance — project complete",
-      "due": "Upon completion",
-      "amount": null
-    }
-  ],
-  "exclusions": [
-    "All interior work. The chimney is enclosed by cabinetry; nothing behind that enclosure is inspected or included",
-    "Any work to return the chimney to working condition — no liner, no flue, no functional crown",
-    "Structural assessment of the chimney below the upper working section",
-    "Roof or flashing work of any kind",
-    "Repair of pre-existing damage to the flagstone path. Path condition is to be photographed jointly before work begins",
-    "Permit fees, if a permit is determined to be required",
-    "Sales tax, which is applied at invoicing"
-  ],
-  "client_summary_para": [
-    "Thanks for the time on site. Here's where things stand.",
-    "The repair itself is straightforward. The cracking is confined to the top few feet — under ten linear feet in total — and it's a mix of failed mortar joints and a few stones that look to have shifted. That's ordinary work on a stack of this age, and because the chimney is out of service, we're stabilising it rather than restoring it to function. That keeps the scope tight.",
-    "The complicated part is reaching it. The chimney sits over twenty feet up and the only approach is the narrow flagstone path along the side. That rules out scaffolding, and a conventional lift almost certainly will not fit; what should is a compact tracked machine that can travel a three-foot path without breaking your stonework. I'm getting that quoted this week and I'll come back to you with a firm number.",
-    "I've deliberately not guessed at that figure. It's the largest single cost in the job and I'd rather give you a real one a few days late than an invented one today.",
-    "One thing worth raising when we speak: because the chimney doesn't function and is enclosed inside the house, repairing it is a decision about how the house looks, not about how it works. There's a permanent alternative worth at least discussing before you spend money on access. Happy to talk it through either way."
-  ],
-  "open_items": [
-    {
-      "item": "Access equipment not yet quoted",
-      "impact": "Largest single cost in the job, entirely unpriced. Modelled at $1,540–$4,080 depending on rate structure. No committed total until it lands.",
-      "severity": "high"
+      "line": "Form ST-124",
+      "cls": "Does not apply",
+      "basis": "Capital improvement certificates apply only to exempt work. Requesting one here would be wrong and would look like Dan does not know his own tax position."
     },
     {
-      "item": "Chimney height not measured",
-      "impact": "'Twenty plus feet' is what was said. Lift working height is specified in fixed increments — the wrong increment is the wrong machine and a wasted delivery.",
-      "severity": "high"
-    },
-    {
-      "item": "Chimney face area assumed, not measured",
-      "impact": "44 sq ft is an invention. It drives the $1,100 repoint line — the largest masonry figure here. 'Absolutely massive' suggests it may be low.",
-      "severity": "high"
-    },
-    {
-      "item": "Two pricing methods disagree",
-      "impact": "Unit pricing and day-rate pricing differ by roughly $1,000–2,400. Dan must choose the method before this is committed.",
-      "severity": "high"
-    },
-    {
-      "item": "Build date unconfirmed",
-      "impact": "Pre-1930 is assumed. It selects the mortar specification and the rate band applied to the repoint line.",
-      "severity": "medium"
-    },
-    {
-      "item": "Loose stone count not established",
-      "impact": "Allowance of three units carried. Each additional reset is $120–350.",
-      "severity": "medium"
-    },
-    {
-      "item": "Defect type not conclusively established",
-      "impact": "Reported as mortar joint cracking plus possible shifted stones. If cracking proves to run through stone units, stone crack repair ($22–45/lin ft) is additional scope.",
-      "severity": "medium"
-    },
-    {
-      "item": "Schedule durations assumed",
-      "impact": "Every duration in Section 4 was invented by the tool. The lift bills by the day, so the day count is a price.",
-      "severity": "medium"
-    },
-    {
-      "item": "Standing config incomplete",
-      "impact": "Warranty term, deposit split, tax rate and licence number unset — Sections 5 and 7 cannot be completed.",
-      "severity": "low"
-    }
-  ],
-  "risk_register": [
-    {
-      "risk": "Access cost rivals or exceeds the masonry cost",
-      "response": "At the recalled day rate the access (4,080) exceeds the masonry ($2,440) outright. At a weekly rate it lands near $1,540 and sits below it. Either way it is the same order of magnitude as the work it serves, which is the unusual thing here and the thing to say to the client before they commit, not at invoicing."
-    },
-    {
-      "risk": "Solo operation at height with material handling",
-      "response": "Dan raised this twice unprompted. Machine selection must account for a platform capable of carrying stone with the operator — capacity and a material rack, not the cheapest machine that reaches. Pricing a tender for the lift days is worth considering despite no reliable helper being available."
-    },
-    {
-      "risk": "Flagstone damage during access",
-      "response": "Path protection is a priced line, path condition is photographed jointly beforehand, and pre-existing damage is excluded in writing. Three defences on one foreseeable dispute."
-    },
-    {
-      "risk": "Lift cannot be sited at all",
-      "response": "Site visit precedes commitment. If no machine fits, the job is scaffold-and-helper or it does not proceed — and finding that out now costs an hour rather than a delivery fee."
-    },
-    {
-      "risk": "Deterioration continues below the working zone",
-      "response": "Scope boundary stated in exclusions. Anything found below the upper section goes through a change order before it is touched."
-    },
-    {
-      "risk": "Repair on an unheated, unused stack in a 100-cycle freeze-thaw climate",
-      "response": "The repair is sound but the exposure is permanent. Set the client's expectation on service life honestly rather than implying a fix is final."
-    },
-    {
-      "risk": "The rate card under-prices this job",
-      "response": "Two pricing methods disagree by four figures — see the cross-check. Dan should price on days and treat the unit total as a floor."
-    }
-  ],
-  "integrity_flags": [
-    {
-      "spec": "historic_mortar",
-      "statement": "Type N or NHL lime mortar is required on pre-1930 masonry. Portland-based mortar is too hard and causes face spalling on historic soft masonry — the repair damages the thing it repairs."
-    },
-    {
-      "spec": "freeze_thaw_cycles",
-      "statement": "Rochester sees 100+ freeze-thaw cycles per year, the leading local cause of stone deterioration. An unheated, out-of-service stack has no thermal help at all."
-    },
-    {
-      "spec": "water_contact_mortar",
-      "statement": "If the top is being closed or crowned, hydraulic cement and waterproofing admix are required. Standard Type S will not hold on a water-shedding surface."
+      "line": "Removal alternative (if pursued)",
+      "cls": "Review",
+      "basis": "Demolition to the roofline with the opening closed is arguably neither repair nor improvement. Genuinely unsettled — accountant question, flagged rather than answered."
     }
   ],
   "derivation": [
@@ -338,140 +181,93 @@
       "rationale": "Revised DOWN after Dan confirmed a cap is present and looks intact. The earlier allowance assumed the top might be open and need closing. Priced near the low end: verification and sealing, not construction. Kept in scope because the lift is already on site — returning for a $350 seal means paying the access cost twice."
     }
   ],
-  "factors_considered": [
+  "project_name": "Stone chimney — upper section crack repair",
+  "onsite_days": 6,
+  "assumptions": [
     {
-      "factor": "Scaffolding, above 12 ft (+20–35%)",
-      "applied": false,
-      "why": "Ruled out by Dan for a labour reason, not a technical one — he cannot erect and strike scaffold single-handed. This is why access became an equipment line rather than a percentage uplift."
+      "what": "Under 10 linear feet of cracked joint",
+      "why_it_matters": "Drives the repointing line directly; a site measure could double it."
     },
     {
-      "factor": "Difficult access / no vehicle entry (+15–25%)",
-      "applied": "flagged",
-      "why": "Squarely applicable — three-foot unpaved approach on a wooded lot. NOT applied, because applying it on top of a discrete equipment rental would charge the same constraint twice. If Dan judges that solo working from a platform slows the masonry itself, it is his to add: 15–25% of the $2,440 subtotal is $366–$610."
-    },
-    {
-      "factor": "Historic / landmark district (+15–25%)",
-      "applied": false,
-      "why": "RESOLVED. Property is not designated — 'historical' described the chimney's age and character, not a register entry. Factor does not apply, saving roughly $366–$610 of uplift and removing a review process from the schedule."
-    },
-    {
-      "factor": "Winter work (+18–28%)",
-      "applied": "conditional — seasonal boundary now live",
-      "why": "Client wants it done before winter. Not applied to this estimate, but it is now a scheduling constraint rather than a hypothetical. NHL lime mortar cures slower than Portland and needs sustained above-freezing temperatures; a Rochester job that reaches the wall in November is a job that stops. Working backwards from a realistic late-October ceiling, the access quotation and material lead time need to be settled by early September."
-    },
-    {
-      "factor": "Premium stone material (+20–40%)",
-      "applied": false,
-      "why": "Salvage-first approach assumed. Applies only to sourced replacement stone, and only if the match requires a premium material."
-    },
-    {
-      "factor": "Structural permit ($175–500)",
-      "applied": false,
-      "why": "Excluded rather than priced. Permit requirement for upper-section repair is a municipal determination, not Dan's."
-    },
-    {
-      "factor": "Minimum job charge ($350–600)",
-      "applied": false,
-      "why": "Not binding — the scope exceeds it comfortably."
+      "what": "Six on-site days",
+      "why_it_matters": "The lift bills by the day, so this is the biggest lever on the total."
     }
   ],
-  "tax_lines": [
+  "_validation": [],
+  "model": {
+    "recommendation": "Day rate. Not per square foot.",
+    "why": "Small quantity of masonry, large quantity of getting to it. Per-unit rates price production, and on this job you are mostly positioning a machine and carrying stone one piece at a time."
+  },
+  "duration": {
+    "low_days": 6,
+    "high_days": 9,
+    "drivers": [
+      "Whether the lift sites in one go",
+      "How much of the upper joint is failed",
+      "Weather in the week you book it"
+    ]
+  },
+  "blockers": [
     {
-      "line": "Whole project",
-      "cls": "Taxable repair",
-      "basis": "Dan stated explicitly: 'It is a repair job. It's not a new build.' NYS Publication 862 classifies repair and partial replacement of masonry as taxable; new installation and COMPLETE replacement are capital improvements. No line here reaches complete replacement."
-    },
-    {
-      "line": "Equipment rental billed to client",
-      "cls": "Taxable",
-      "basis": "Follows the character of the work it serves."
-    },
-    {
-      "line": "Form ST-124",
-      "cls": "Does not apply",
-      "basis": "Capital improvement certificates apply only to exempt work. Requesting one here would be wrong and would look like Dan does not know his own tax position."
-    },
-    {
-      "line": "Removal alternative (if pursued)",
-      "cls": "Review",
-      "basis": "Demolition to the roofline with the opening closed is arguably neither repair nor improvement. Genuinely unsettled — accountant question, flagged rather than answered."
+      "item": "Access equipment not quoted",
+      "why": "Largest single cost in the job and it bills by the day.",
+      "resolves_by": "One call to a rental yard, once you have the path width.",
+      "ask": [
+        "Weekly rate before day rate",
+        "Stowed chassis width, in inches",
+        "Working height with margin",
+        "Platform capacity with a material rack",
+        "Delivery and pickup, quoted separately",
+        "Does the damage waiver cover the property"
+      ],
+      "measure": [
+        "Path width at its narrowest",
+        "Path length from truck to work",
+        "Height, measured not estimated",
+        "Ground condition and slope"
+      ]
     }
   ],
-  "resolved_items": [
+  "range": {
+    "low": {
+      "labor": 4180,
+      "materials": 590,
+      "equipment": null,
+      "conditions": 715,
+      "conditions_basis": "difficult_access — no vehicle entry, at 15%"
+    },
+    "high": {
+      "labor": 7920,
+      "materials": 860,
+      "equipment": null,
+      "conditions": 2195,
+      "conditions_basis": "difficult_access at 25%"
+    },
+    "equipment_note": "Access equipment is not in either column. Nobody has quoted it, and a rental figure invented here is one you would have to honour.",
+    "swing": [
+      "Six days versus nine",
+      "Whether you rent a lift or scaffold it",
+      "How much upper joint is actually failed"
+    ]
+  },
+  "explanation": "The chimney is out of service, so this is stabilisation, not restoration — the cost is in reaching the work, not in the work.",
+  "scope_sentence": "Rake and repoint the failed joints in the upper section of the stone chimney, reset shifted units, and seal the top against water entry. Chimney remains out of service.",
+  "objections": [
     {
-      "item": "Overhead canopy",
-      "resolution": "Nothing overhead. Boom articulation unobstructed.",
-      "effect": "Risk closed. No limb removal, no client permission needed."
+      "objection": "Why not just patch the crack from a ladder?",
+      "response": "Over twenty feet with stone that has already shifted, a ladder gives you one hand and no way to hold a unit while you bed it. The units come out and go back either way.",
+      "grounded_in": "Memo: 20+ ft, stones appear to have shifted"
     },
     {
-      "item": "Historic district designation",
-      "resolution": "Not designated — the property is old, not registered.",
-      "effect": "The 15–25% historic factor does not apply, saving roughly $366–$610 of uplift. More importantly it removes a review process from the schedule, and it means the removal alternative can be discussed freely."
+      "objection": "Can you use regular mortar? It is cheaper.",
+      "response": "Pre-1930 stone takes Type N or NHL lime. Portland is harder than the stone and spalls the face — you would be repairing the repair.",
+      "grounded_in": "Rate card integrity_specs — pre-1930 masonry"
     },
     {
-      "item": "Top / cap condition",
-      "resolution": "Cap present and appears intact from the ground.",
-      "effect": "Top scope reduced from closure to inspect-and-seal — $450 down to $350."
-    },
-    {
-      "item": "Timing",
-      "resolution": "Before winter, not urgent. Client is taking multiple bids.",
-      "effect": "Creates a hard seasonal boundary and changes the commercial read — see findings."
+      "objection": "The chimney does not even work. Why spend anything?",
+      "response": "It is enclosed by the house. If the upper section keeps moving, what it comes down onto is roof and interior, not lawn.",
+      "grounded_in": "Memo: non-functional, enclosed by cabinetry"
     }
   ],
-  "timing": {
-    "client_window": "Before winter; not urgent",
-    "hard_boundary": "Masonry cannot be laid in freezing temperatures. NHL lime mortar cures more slowly than Portland and needs sustained above-freezing conditions.",
-    "backwards_plan": "On the wall by late October at the latest. That means access quotation and approval by early September, material ordering mid-September, allowing for a 1–2 week lead on lime mortar and any sourced stone.",
-    "note": "The seasonal boundary is real leverage and should be stated to the client plainly — not as pressure, as physics."
-  },
-  "competitive_position": {
-    "signal": "Client is taking multiple bids and, per Dan, a number of masons are hesitant because of the access problem.",
-    "reading": "Dan is not competing on price. He is competing on willingness — the field is thinning itself because of the very constraint that makes this job awkward. That inverts the usual pressure: the correct response is not to shave the number to win, it is to be the only bidder who arrives with a specific, credible method.",
-    "implication_for_this_document": "The unpriced access line reads as a weakness only if the rest of the document is vague. Here it is surrounded by a named machine class, a measured site-visit plan, and a stated reason for the omission. Against competitors who are either declining outright or padding a number to cover their own uncertainty, a staged answer — site visit, equipment quote, firm price — reads as competence rather than evasion.",
-    "risk": "The opposite failure is real too. A client collecting bids may read 'price to follow' as no bid at all. The covering note must make the sequence and the timeline explicit, so the gap looks like a process with a date on it rather than an open question."
-  },
-  "access_scenario": {
-    "status": "PLANNING SCENARIO — NOT A QUOTE. Internal only. Does not appear on any client document.",
-    "provenance": "Day rate recalled by Lindsey from Dan looking at a spider lift at Admar Supply, Rochester. Not obtained from the rental yard, not confirmed against a machine class or a working height.",
-    "day_rate": 680,
-    "days_modelled": 6,
-    "days_note": "6 days on site — 1 delivery and siting, 3 masonry, 1 seal after cure, 1 strike and demobilise. Reconciled against the timeline in Section 4; the earlier 4-day model under-counted its own schedule.",
-    "at_day_rate": 4080,
-    "weekly_multiple_local": 2.26,
-    "weekly_estimate": 1540,
-    "weekly_basis": "Rochester conventional boom rates: 60 ft at $640/day and $1,445/week — a multiple of 2.26 — per DOZR's published Rochester NY boom lift rates, retrieved July 2026. Spider lifts are a specialty class and may not follow the same multiple. Applying 2.26 to the recalled $680/day is an EXTRAPOLATION, not a quote.",
-    "headline": "This job needs the lift for 6 days, not three. At the day rate that is $4,080. If Admar's weekly multiple resembles the local pattern, a week lands near $1,540 — roughly a third of the day-rate figure, a saving of about $2,540, and it covers the whole job with weather slack. Ask for the weekly rate first. It is the single largest saving available on this estimate.",
-    "not_included": "Delivery and pickup, quoted separately and both ways. Damage waiver. These are the two lines that surprise people on specialty machines, and neither is modelled here.",
-    "validation": "The tool named 'tracked / spider lift' from the memo alone — narrow unpaved path, landscaped surface, solo operator, 20+ ft. Dan had independently been looking at exactly that machine class at Admar. The reasoning arrived where the mason already was, which is the outcome to want: not a novel answer, the right one.",
-    "scenario_totals": {
-      "masonry": 2440,
-      "access_week": 1540,
-      "access_6day": 4080,
-      "project_low": 3980,
-      "project_high": 6520,
-      "caveat": "Before sales tax, before delivery and pickup, before any change in the contingent masonry lines."
-    },
-    "why_it_stays_internal": "The client proposal keeps its blank. A remembered figure that reaches a client document becomes a number they hold Dan to, and the single most defensible thing about this bid is that Dan does not quote what he has not priced. The scenario exists so Dan can see the shape of the job — not so the client can."
-  },
-  "call_sheet_priority": "Ask for the WEEKLY rate first, not the day rate. This job needs the machine for about 6 days — $4,080 at $680/day. At Rochester weekly multiples a full week may land near $1,540. That single question is worth more than everything else on this sheet.",
-  "timeline_note": "EVERY duration in this table was invented by the tool. Nothing about scheduling was in the memo beyond 'before winter'. They are shown rather than left blank because the lift bills by the day, so the day count IS a price — these 6 on-site days are what turns a $2,040 assumption into a $4,080 one. Dan should correct them before anything else.",
-  "cross_check": {
-    "why": "The rate card prices masonry per unit — per square foot, per linear foot, per stone. Those bands assume normal access and a mason working with a tender. This job has a small quantity of work and a large quantity of getting to it. So the two legitimate ways to price it disagree, and the tool surfaces the disagreement rather than silently picking the one it likes.",
-    "method_a": {
-      "name": "Unit price, off the rate card",
-      "value": 2440,
-      "note": "Every line derived in Section 6. All-in per the card's Total Est. convention."
-    },
-    "method_b": {
-      "name": "Day rate, off the card's quick reference",
-      "low": 4190,
-      "high": 5870,
-      "note": "6 on-site days — the same 6 the lift is modelled at in Section 7b — at the card's mason rate of $75–110/hr over 8-hour days, plus $590 materials. Solo working, so no tender rate applies. Siting and strike days are Dan's time too."
-    },
-    "gap": "Unit pricing lands at $2,440. Day-rate pricing lands at $4,190–$5,870. The unit method is LOW by roughly $1,750–$3,430 — it does not merely differ from the day-rate method, it is under half of it at the top of the band.",
-    "reading": "This is not a rounding difference, it is the rate card telling on itself. Per-unit rates price PRODUCTION. On this job Dan is not mostly producing — he is positioning a machine, climbing, carrying stone one piece at a time, and repositioning. A small quantity in an awkward place costs day-rate money regardless of how few square feet it is.",
-    "recommendation": "Price this job on days, not units, and use the unit figure only as a floor. The rate card's own minimum-job clause ($350–600) exists for the same reason — it acknowledges that below a certain size, quantity stops predicting cost. This job is that case at a larger scale.",
-    "instruction": "Dan's call. The tool will not silently switch methods — it shows both and says which it would use."
-  }
+  "validity": "Holds 30 days. Stone and lime are the volatile inputs — the card flags materials up 8-14% since 2024."
 }

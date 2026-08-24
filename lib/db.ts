@@ -69,6 +69,42 @@ export const db = {
     const { error } = await sb().from('corrections').insert(row);
     if (error) throw error;
   },
+
+  /**
+   * A returned document names its job in its filename and in its subject line.
+   * Matched against the priced spec rather than a column: the proposal number is
+   * minted at pricing time and lives in `job_spec`, and adding a column for it
+   * would mean two places that can disagree.
+   */
+  async getJobByProposalNo(no: string) {
+    const { data } = await sb().from('jobs').select('*').eq('job_spec->>proposal_no', no).maybeSingle();
+    return data;
+  },
+
+  // A webhook retry must not re-read the same markup and file it twice.
+  async correctionsForEvent(eventId: string) {
+    const { data } = await sb().from('corrections').select('id').eq('event_id', eventId).limit(1);
+    return data?.length ? data : null;
+  },
+
+  async logCorrections(rows: any[]) {
+    if (!rows.length) return;
+    const { error } = await sb().from('corrections').insert(rows);
+    if (error) throw error;
+  },
+
+  /**
+   * What Dan has already fixed by hand, newest first, for the next estimate to
+   * read. Scoped to nothing — a rate he corrected on a chimney is the same rate
+   * on a garden wall, because it is the card that drifted, not the job.
+   */
+  async recentCorrections(limit = 60) {
+    const { data } = await sb().from('corrections')
+      .select('kind, line_ref, tool_value, dan_value, note')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return data || [];
+  },
   async nextProposalNo() {
     const { data } = await sb().from('config').select('next_proposal_no').eq('id', 1).single();
     const n = data?.next_proposal_no ?? 1;

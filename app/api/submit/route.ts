@@ -7,6 +7,7 @@ import { price } from '@/lib/price';
 import { buildDocuments } from '@/lib/docs';
 import { deliver } from '@/lib/mail';
 import { uploadToDrive } from '@/lib/drive';
+import { digest } from '@/lib/corrections';
 
 export const maxDuration = 300;
 
@@ -17,9 +18,15 @@ export async function POST(req: NextRequest) {
 
   await db.updateJob(job.id, { answers, status: 'generating' });
 
-  const spec = await price(job.extraction, answers);
+  // Everything Dan has already corrected by hand, priced in before the model
+  // reaches for the card. A ledger nothing reads is a diary.
+  const prior = digest(await db.recentCorrections().catch(() => []));
+
+  const spec = await price(job.extraction, answers, prior);
   const proposalNo = await db.nextProposalNo();
   spec.proposal_no = proposalNo;
+  // Server clock, not the model's idea of today. It has been wrong about the date.
+  spec.date_issued = new Date().toISOString().slice(0, 10);
 
   const docs = await buildDocuments(spec, job.extraction, job.transcript);
 

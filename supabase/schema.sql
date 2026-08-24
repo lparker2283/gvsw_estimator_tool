@@ -85,3 +85,10 @@ create table config (
   check (id = 1)
 );
 insert into config (id) values (1) on conflict do nothing;
+
+-- Applied separately as supabase/migrations/2026-08-24-corrections-event-id.sql
+-- for a database that already exists; included here so a fresh one is correct.
+alter table corrections add column if not exists event_id text;
+alter table corrections add column if not exists confidence text;
+create unique index if not exists corrections_event_id_key on corrections (event_id);
+create index if not exists corrections_created_at_idx on corrections (created_at desc);
