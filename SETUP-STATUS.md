@@ -3,11 +3,16 @@
 ## Live and verified
 
 **Supabase** — project `gvsw_estimator_tool` (`hvaqvnpvcnwgvfbhgbze`, us-west-2)
-- `jobs`, `corrections`, `config` created; `config` seeded with one row, `next_proposal_no = 1`
-- **RLS enabled on all three tables with no policies.** Deliberate: every row is client
+- `jobs`, `inbound_failures`, `corrections`, `config` created; `config` seeded with one
+  row, `next_proposal_no = 1`
+- `corrections` carries `event_id` and `confidence`, with the unique index on `event_id`
+  and a `created_at desc` index. The correction migration has been run.
+- **RLS enabled on all four tables with no policies.** Deliberate: every row is client
   data, the server only ever talks to it with the `service_role` key (which bypasses RLS),
   so a policy-less RLS means the publishable key can read nothing. Supabase's linter
   reports this as an INFO notice — that notice is the desired state, not a defect.
+  `inbound_failures` was added after the first three and came up without RLS; it has it
+  now, and `schema.sql` states it for every table so a new one cannot skip it again.
 
 **Resend** — `mail.dogruntwork.com`, **Verified**, us-east-1. Sending AND receiving.
 - Free tier allows one custom domain, so both roles live on the one subdomain.
@@ -58,13 +63,7 @@ deleted with `send.mail` left alone.
 
 ## Blocked, needs you
 
-**1. Run the corrections migration.**
-`supabase/migrations/2026-08-24-corrections-event-id.sql` — SQL Editor, paste, Run.
-Adds `event_id` and `confidence` to `corrections` plus a unique index. Until it runs,
-a marked-up page that comes back cannot be logged, and a webhook retry would file
-every mark twice.
-
-**2. First live run of each direction.**
+**1. First live run of each direction.**
 - A real memo in, watching the Drive folder. `HUMAN_IN_THE_LOOP=true` keeps the
   documents coming to you rather than to Dan.
 - Then reply to that delivery with the PDF marked up, and check that rows land in
