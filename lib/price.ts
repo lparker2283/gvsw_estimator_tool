@@ -24,7 +24,18 @@ RULES
 
 2. The committed figure must sit inside the cited band, and you must say why it lands where it does inside that band.
 
-3. Equipment the mason has not had quoted is NOT PRICED. Return null for its cost and null for the project total. A total resting on an invented rental figure is a number the client holds him to.
+3. This document is INTERNAL — read by the mason, never sent to a client. His own card says so. That does not license invention; it licenses labelling. A figure you can ground goes in with its basis named. A figure you cannot — a rental nobody has quoted — is null, with a note saying what it is and why there is no number yet. Never an unlabelled number.
+
+3a. THE RANGE IS THE PRODUCT, not a committed price. He commits to a figure himself, later, in his own proposal. Your job is to hand him two ends and make the distance between them explainable.
+
+   LOW:  bottom of every cited band · fewer-days assumption · contingent lines EXCLUDED · adjustment factors at their low percentage
+   HIGH: top of every cited band · more-days assumption · contingent lines INCLUDED · adjustment factors at their high percentage
+
+   \`swing\` names the two or three assumptions that actually differ between the columns. He must be able to narrow the range by answering a question. "Depends on conditions" is not a swing factor; "whether the risers are sound" is.
+
+3b. The conditions row uses the card's OWN named adjustment_factors — difficult access, scaffolding above 12 ft, historic district, winter work — and says which, at what percent. Never a percentage of your own devising. Where none applies the row is null, not zero with an excuse.
+
+3c. Do NOT add an overhead or profit percentage. The card carries no such figure. Inventing one either double-charges the client or guesses at his books.
 
 4. Compute BOTH pricing methods and report the gap:
    - unit price, off the card's per-unit bands
@@ -37,19 +48,23 @@ RULES
 
 7. Rate card bands are all-in (labour + material) per its "Total Est." convention. Do not double count.
 
-8. NEVER describe a job you were not given. Access equipment, return site visits, day-rate billing, lead times — none of these are facts about a job unless this job's extraction contains them. If a sentence would read identically on a chimney and on a patio, it is filler; cut it.
+8. OBJECTIONS must be grounded. Every response cites what it stands on — a rate card key, one of the card's integrity_specs (Type N or NHL lime for pre-1930 masonry, hydraulic cement on water contact, the 48" Monroe County frost line), or quoted words from the memo. A fluent invention repeated to a client costs him the room. Three grounded objections beat six fluent ones; if you cannot ground it, leave it out.
+
+9. Write the objection in the words a client would use — "why can't you just patch the crack" — and the response as the consequence, not the persuasion. He is not closing a sale on this page; he is remembering why he priced it that way.
+
+10. NEVER describe a job you were not given. Access equipment, return site visits, day-rate billing, lead times — none of these are facts about a job unless this job's extraction contains them. If a sentence would read identically on a chimney and on a patio, it is filler; cut it.
 
 LENGTH
 
 This is read on a reMarkable, on a job site, by a mason who is not a words guy. Every word past the decision is a word in his way.
 
-9. HEADLINE: at most 10 words, and it must be a decision — "Day rate. Not per square foot." A restatement of the situation is not a headline.
+11. HEADLINE: at most 10 words, and it must be a decision — "Day rate. Not per square foot." A restatement of the situation is not a headline.
 
-10. READING and RECOMMENDATION: two sentences each, ceiling. State the consequence — a number, a method, a liability. He already understands masonry; do not explain masonry to him.
+12. READING and RECOMMENDATION: two sentences each, ceiling. State the consequence — a number, a method, a liability. He already understands masonry; do not explain masonry to him.
 
-11. SCOPE DESCRIPTIONS: one line. What the line covers, not why the line exists.
+13. SCOPE DESCRIPTIONS: one line. What the line covers, not why the line exists.
 
-12. Anything you would have written as reassurance, delete. The document is structurally safe — nothing is committed, every gap is listed, and he can mark it up. Saying so again reads as anxiety.
+14. Anything you would have written as reassurance, delete. The document is structurally safe — nothing is committed, every gap is listed, and he can mark it up. Saying so again reads as anxiety.
 
 Return ONLY the tool JSON.`;
 
@@ -63,9 +78,82 @@ export async function price(extraction: any, answers: Record<string, string>, pr
       description: 'A fully derived job spec.',
       input_schema: {
         type: 'object',
-        required: ['project_name','scope','derivation','materials','totals','cross_check','assumptions','open_items','unpriced','tax_lines'],
+        required: ['project_name','model','duration','blockers','range','explanation','objections',
+                   'scope','derivation','materials','totals','cross_check','assumptions','tax_lines'],
         properties: {
           project_name:{ type:'string', description:'the job in at most eight words, as Dan would say it aloud' },
+
+          /**
+           * The five blocks Dan reads, in the order he reads them. This is not a
+           * proposal and does not try to be one — he writes that himself, later,
+           * and better. It is the smallest thing that gets him from a voice memo
+           * to being able to quote with a straight face.
+           */
+          model:      { type:'object', required:['recommendation','why'],
+                        description:'how to charge for this job, and why',
+                        properties:{
+                          recommendation:{ type:'string', description:'≤ 12 words, a decision: "Day rate — repair with unknowns"' },
+                          why:{ type:'string', description:'one or two sentences, the reason it is that and not the other' } } },
+
+          duration:   { type:'object', required:['low_days','high_days','drivers'],
+                        properties:{
+                          low_days:{ type:'number' }, high_days:{ type:'number' },
+                          drivers:{ type:'array', items:{type:'string'},
+                            description:'what decides where in the range it lands, ≤ 10 words each. These are the things that, if answered, narrow it.' } } },
+
+          /**
+           * What stops this being a confident number. Not everything unknown —
+           * only what actually blocks. An estimate with nine caveats is an
+           * estimate nobody sends.
+           */
+          blockers:   { type:'array', description:'what must be settled before committing to a price; empty if nothing does',
+                        items:{ type:'object', required:['item','why','resolves_by'],
+                          properties:{
+                            item:{ type:'string', description:'≤ 10 words' },
+                            why:{ type:'string', description:'what it moves — a number, a method, a liability. ≤ 20 words' },
+                            resolves_by:{ type:'string', description:'the concrete next action: one call, one measurement, one site visit' },
+                            ask:{ type:'array', items:{type:'string'}, description:'what to ask, ≤ 8 words each' },
+                            measure:{ type:'array', items:{type:'string'}, description:'what to measure first, ≤ 8 words each' } } } },
+
+          /**
+           * Two columns. Low is the bottom of every cited band, the fewer-days
+           * assumption, contingent lines out, adjustment factors at their low
+           * percentage. High is the top of each band, more days, contingent lines
+           * in, factors at their high. `swing` names what actually flips between
+           * them, because a range whose spread cannot be explained is a shrug.
+           */
+          range:      { type:'object', required:['low','high','swing'],
+                        properties:{
+                          low:  { type:'object', required:['labor','materials','equipment','conditions'],
+                                  properties:{ labor:{type:'number'}, materials:{type:'number'},
+                                    equipment:{type:['number','null']}, conditions:{type:['number','null']},
+                                    conditions_basis:{type:'string', description:'which named card adjustment factor, and at what percent'} } },
+                          high: { type:'object', required:['labor','materials','equipment','conditions'],
+                                  properties:{ labor:{type:'number'}, materials:{type:'number'},
+                                    equipment:{type:['number','null']}, conditions:{type:['number','null']},
+                                    conditions_basis:{type:'string'} } },
+                          equipment_note:{ type:'string', description:'required when either equipment figure is null: what it is and why there is no number yet' },
+                          swing:{ type:'array', items:{type:'string'},
+                            description:'the two or three assumptions that differ between the columns, ≤ 12 words each' } } },
+
+          explanation:{ type:'string', description:'one or two sentences under the range, in plain words, that Dan could say out loud to a client' },
+
+          scope_sentence:{ type:'string', description:'one or two sentences of plain scope language Dan can lift straight into his own proposal' },
+
+          /**
+           * The most useful block and the most dangerous. A fluent invention
+           * repeated to a client costs him the room, so every note must name what
+           * it stands on — a card band, an integrity spec, or his own words.
+           */
+          objections: { type:'array', maxItems: 4,
+                        description:'what a client is likely to push back on, and what Dan can say. Three grounded beats six fluent. Omit any you cannot ground.',
+                        items:{ type:'object', required:['objection','response','grounded_in'],
+                          properties:{
+                            objection:{ type:'string', description:'in the words a client would actually use, ≤ 15 words' },
+                            response:{ type:'string', description:'the consequence, not the persuasion. ≤ 40 words' },
+                            grounded_in:{ type:'string', description:'the rate card key, the integrity spec, or the quoted words from the memo this rests on' } } } },
+
+          validity:   { type:'string', description:'how long the range holds and what would move it — name the volatile input for this job' },
           scope:      { type:'array', items:{type:'object', required:['task','description','unit','cost','contingent'],
                           properties:{ task:{type:'string'}, description:{type:'string'}, unit:{type:'string'},
                             cost:{type:['number','null']}, contingent:{type:'boolean'}, contingency_note:{type:'string'} } } },
@@ -76,17 +164,6 @@ export async function price(extraction: any, answers: Record<string, string>, pr
           materials:  { type:'array', items:{type:'object', properties:{ material:{type:'string'}, spec:{type:'string'},
                             supplier:{type:'string'}, qty:{type:'string'}, unit:{type:'string'}, cost:{type:'number'} } } },
           onsite_days:{ type:'number', description:'working days on site, incl. setup and strike' },
-          /**
-           * What used to be a separate call sheet, hardcoded to one job's spider
-           * lift. Now it is per-job and it only exists when something is actually
-           * unpriced: no unpriced items, no section, no invented errand.
-           */
-          unpriced:   { type:'array', description:'anything left NOT PRICED, and the shortest route to a real number',
-                        items:{ type:'object', required:['item','why','ask'],
-                          properties:{ item:{type:'string'}, why:{type:'string', description:'at most 12 words'},
-                            ask:{type:'array', items:{type:'string'}, description:'what to ask the supplier or yard, ≤ 8 words each'},
-                            measure:{type:'array', items:{type:'string'}, description:'what to measure first, ≤ 8 words each'},
-                            first:{type:'string', description:'the single question to lead with, if one dominates'} } } },
           totals:     { type:'object', properties:{ labor:{type:'number'}, materials:{type:'number'},
                             subtotal_ex_access:{type:'number'}, equipment:{type:['number','null']},
                             total:{type:['number','null']}, tax_classification:{type:'string'}, tax_note:{type:'string'} } },
@@ -96,8 +173,6 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                           gap:{type:'string'}, reading:{type:'string'}, recommendation:{type:'string'} } },
           assumptions:{ type:'array', items:{type:'object', required:['what','why_it_matters'],
                           properties:{ what:{type:'string'}, why_it_matters:{type:'string'} } } },
-          open_items: { type:'array', items:{type:'object', properties:{ item:{type:'string'},
-                          impact:{type:'string'}, severity:{type:'string'} } } },
           tax_lines:  { type:'array', items:{type:'object', properties:{ line:{type:'string'},
                           cls:{type:'string'}, basis:{type:'string'} } } },
         },
@@ -116,6 +191,9 @@ export async function price(extraction: any, answers: Record<string, string>, pr
   const spec: any = (msg.content.find((c: any) => c.type === 'tool_use') as any).input;
   return validate(spec);
 }
+
+/** A working day on site. The card quotes an hourly mason rate over 8-hour days. */
+const HOURS_PER_DAY = 8;
 
 /** Cheap deterministic guards. The model is good; arithmetic should not be trusted to it. */
 export function validate(spec: any) {
@@ -143,17 +221,44 @@ export function validate(spec: any) {
   }
 
   /**
-   * A total is refused when something is unpriced — not whenever `equipment` is
-   * null. Those were the same thing only on the job this was written against.
-   * A repointing job that needs no lift at all has a null equipment figure and
-   * a perfectly good total, and the old guard silently withheld it.
+   * The range, summed here rather than by the model. Four rows, two columns, and
+   * a null in the equipment row is a real state — "nobody has quoted this" — not
+   * a zero. A column carrying a null totals what it can and says so; the old code
+   * withheld the whole figure, which is how a document that was meant to unblock
+   * him became the blocker.
    */
-  const unpriced: any[] = spec.unpriced || [];
-  if (unpriced.length && spec.totals?.total != null)
-    problems.push(`project total was set while ${unpriced.length} item(s) are unpriced — refusing`);
-  if (spec.totals && unpriced.length) spec.totals.total = null;
-  if (spec.totals && !unpriced.length && spec.totals.total == null)
-    spec.totals.total = scopeSum + (spec.totals.equipment || 0) + (spec.totals.tax || 0);
+  const R = spec.range;
+  if (R) {
+    for (const col of ['low', 'high'] as const) {
+      const c = R[col];
+      if (!c) continue;
+      const parts = [c.labor, c.materials, c.equipment, c.conditions];
+      c.total = parts.reduce((a: number, n: any) => a + (Number(n) || 0), 0);
+      c.partial = parts.some((n: any) => n === null || n === undefined);
+    }
+    if (R.low?.total != null && R.high?.total != null && R.low.total > R.high.total)
+      problems.push(`range is inverted: low ${R.low.total} exceeds high ${R.high.total}`);
+    if ((R.low?.partial || R.high?.partial) && !R.equipment_note)
+      problems.push('a range row is unpriced but no equipment_note explains why');
+
+    /**
+     * The one line under the range.
+     *
+     * Deliberately just the arithmetic. He knows he undercharges — being told
+     * again is nagging, and nagging a perfectionist about money buys avoidance,
+     * not a higher number. So: what he is billing, over how long, per hour. No
+     * comparison, no verdict, nothing for him to argue with.
+     */
+    const days = Number(spec.duration?.low_days ?? spec.onsite_days) || 0;
+    const hours = days * HOURS_PER_DAY;
+    if (hours > 0 && R.low?.labor != null) {
+      spec.effective_rate = {
+        labor: Math.round(R.low.labor),
+        days,
+        per_hour: Math.round(R.low.labor / hours),
+      };
+    }
+  }
 
   spec._validation = problems;
   return spec;

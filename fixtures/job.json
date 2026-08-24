@@ -107,53 +107,6 @@
     "instruction": "Dan's call. The tool will not silently switch methods — it shows both and says which it would use.",
     "headline": "Day rate. Not per square foot."
   },
-  "open_items": [
-    {
-      "item": "Access equipment not yet quoted",
-      "impact": "Largest single cost in the job, entirely unpriced. Modelled at $1,540–$4,080 depending on rate structure. No committed total until it lands.",
-      "severity": "high"
-    },
-    {
-      "item": "Chimney height not measured",
-      "impact": "'Twenty plus feet' is what was said. Lift working height is specified in fixed increments — the wrong increment is the wrong machine and a wasted delivery.",
-      "severity": "high"
-    },
-    {
-      "item": "Chimney face area assumed, not measured",
-      "impact": "44 sq ft is an invention. It drives the $1,100 repoint line — the largest masonry figure here. 'Absolutely massive' suggests it may be low.",
-      "severity": "high"
-    },
-    {
-      "item": "Two pricing methods disagree",
-      "impact": "Unit pricing and day-rate pricing differ by roughly $1,000–2,400. Dan must choose the method before this is committed.",
-      "severity": "high"
-    },
-    {
-      "item": "Build date unconfirmed",
-      "impact": "Pre-1930 is assumed. It selects the mortar specification and the rate band applied to the repoint line.",
-      "severity": "medium"
-    },
-    {
-      "item": "Loose stone count not established",
-      "impact": "Allowance of three units carried. Each additional reset is $120–350.",
-      "severity": "medium"
-    },
-    {
-      "item": "Defect type not conclusively established",
-      "impact": "Reported as mortar joint cracking plus possible shifted stones. If cracking proves to run through stone units, stone crack repair ($22–45/lin ft) is additional scope.",
-      "severity": "medium"
-    },
-    {
-      "item": "Schedule durations assumed",
-      "impact": "Every duration in Section 4 was invented by the tool. The lift bills by the day, so the day count is a price.",
-      "severity": "medium"
-    },
-    {
-      "item": "Standing config incomplete",
-      "impact": "Warranty term, deposit split, tax rate and licence number unset — Sections 5 and 7 cannot be completed.",
-      "severity": "low"
-    }
-  ],
   "tax_lines": [
     {
       "line": "Whole project",
@@ -240,16 +193,30 @@
       "why_it_matters": "The lift bills by the day, so this is the biggest lever on the total."
     }
   ],
-  "unpriced": [
+  "_validation": [],
+  "model": {
+    "recommendation": "Day rate. Not per square foot.",
+    "why": "Small quantity of masonry, large quantity of getting to it. Per-unit rates price production, and on this job you are mostly positioning a machine and carrying stone one piece at a time."
+  },
+  "duration": {
+    "low_days": 6,
+    "high_days": 9,
+    "drivers": [
+      "Whether the lift sites in one go",
+      "How much of the upper joint is failed",
+      "Weather in the week you book it"
+    ]
+  },
+  "blockers": [
     {
-      "item": "Access equipment — tracked (spider) lift",
-      "why": "No rental yard has been called. Largest cost in the job.",
-      "first": "Weekly rate before day rate.",
+      "item": "Access equipment not quoted",
+      "why": "Largest single cost in the job and it bills by the day.",
+      "resolves_by": "One call to a rental yard, once you have the path width.",
       "ask": [
+        "Weekly rate before day rate",
         "Stowed chassis width, in inches",
         "Working height with margin",
         "Platform capacity with a material rack",
-        "Ground bearing pressure",
         "Delivery and pickup, quoted separately",
         "Does the damage waiver cover the property"
       ],
@@ -257,10 +224,50 @@
         "Path width at its narrowest",
         "Path length from truck to work",
         "Height, measured not estimated",
-        "Ground condition and slope",
-        "Turning space at the far end"
+        "Ground condition and slope"
       ]
     }
   ],
-  "_validation": []
+  "range": {
+    "low": {
+      "labor": 4180,
+      "materials": 590,
+      "equipment": null,
+      "conditions": 715,
+      "conditions_basis": "difficult_access — no vehicle entry, at 15%"
+    },
+    "high": {
+      "labor": 7920,
+      "materials": 860,
+      "equipment": null,
+      "conditions": 2195,
+      "conditions_basis": "difficult_access at 25%"
+    },
+    "equipment_note": "Access equipment is not in either column. Nobody has quoted it, and a rental figure invented here is one you would have to honour.",
+    "swing": [
+      "Six days versus nine",
+      "Whether you rent a lift or scaffold it",
+      "How much upper joint is actually failed"
+    ]
+  },
+  "explanation": "The chimney is out of service, so this is stabilisation, not restoration — the cost is in reaching the work, not in the work.",
+  "scope_sentence": "Rake and repoint the failed joints in the upper section of the stone chimney, reset shifted units, and seal the top against water entry. Chimney remains out of service.",
+  "objections": [
+    {
+      "objection": "Why not just patch the crack from a ladder?",
+      "response": "Over twenty feet with stone that has already shifted, a ladder gives you one hand and no way to hold a unit while you bed it. The units come out and go back either way.",
+      "grounded_in": "Memo: 20+ ft, stones appear to have shifted"
+    },
+    {
+      "objection": "Can you use regular mortar? It is cheaper.",
+      "response": "Pre-1930 stone takes Type N or NHL lime. Portland is harder than the stone and spalls the face — you would be repairing the repair.",
+      "grounded_in": "Rate card integrity_specs — pre-1930 masonry"
+    },
+    {
+      "objection": "The chimney does not even work. Why spend anything?",
+      "response": "It is enclosed by the house. If the upper section keeps moving, what it comes down onto is roof and interior, not lawn.",
+      "grounded_in": "Memo: non-functional, enclosed by cabinetry"
+    }
+  ],
+  "validity": "Holds 30 days. Stone and lime are the volatile inputs — the card flags materials up 8-14% since 2024."
 }

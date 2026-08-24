@@ -61,6 +61,17 @@ export const CSS = `
            font-weight: 700; margin: 16px 0 4px; }
   .first { font-weight: 700; color: #1a1a19; }
 
+  /* The two columns. The figure is the point, so it is set larger than the prose
+     around it and the totals row larger again. */
+  table.range td.r { font-size: 11pt; }
+  table.range td.big { font-size: 15pt; letter-spacing: -.02em; }
+
+  /* The one line under the range: what he is billing, over how long, per hour.
+     Set apart so it is not read as part of the table, and not styled as a
+     warning — it is arithmetic, not a telling-off. */
+  .rate { margin: 14px 0 4px; padding: 11px 14px; background: #f0eee7;
+          border-left: 3px solid ${B.accent}; font-size: 11.5pt; font-weight: 700; color: #1a1a19; }
+
   /* The three figures he is actually looking for, before any prose. */
   .stats { display: flex; gap: 26px; margin: 4px 0 16px; }
   .stat { flex: 0 0 auto; }
