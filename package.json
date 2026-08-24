@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "smoke": "tsx scripts/smoke.mjs"
+    "smoke": "tsx scripts/smoke.mjs",
+    "email": "tsx scripts/email-preview.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

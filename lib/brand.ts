@@ -27,7 +27,17 @@ export type Brand = {
   font: string;
 };
 
-const SANS = `-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif`;
+/**
+ * Single quotes around the multi-word family, not double.
+ *
+ * This string is interpolated into `style="…"` attributes in the email HTML, and
+ * a double quote inside a double-quoted attribute closes it. The whole
+ * declaration was being truncated at `BlinkMacSystemFont,` — every email the
+ * tool has ever sent rendered in the browser's default serif, at default size,
+ * with the colour and width lost. It looked like a deliberate choice, which is
+ * why nobody caught it.
+ */
+const SANS = `-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif`;
 
 export const BRANDS: Record<string, Brand> = {
   gvsw: {

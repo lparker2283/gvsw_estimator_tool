@@ -55,8 +55,24 @@ export async function sendQuestionsEmail(
  * his pencil landing on a claim the email never made.
  */
 export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: boolean; brand?: string }) {
-  const b = brandFor(o.brand);
-  const H = highlights(o.spec);
+  const { subject, html } = deliveryEmail(o.spec, o.review, o.brand);
+  await resend().emails.send({
+    from: FROM, to: o.to, subject, html,
+    attachments: o.docs.map(d => ({ filename: d.filename, content: d.pdf.toString('base64') })),
+  });
+}
+
+/**
+ * The body, built apart from the sending of it.
+ *
+ * Split out so the email can be rendered and looked at without a live job, an
+ * API key, or a memo — the same reason the documents have a smoke test. An email
+ * nobody can preview is an email whose first reader is Dan.
+ */
+export function deliveryEmail(spec: any, review = false, brandKey?: string): { subject: string; html: string } {
+  const b = brandFor(brandKey);
+  const H = highlights(spec);
+  const o = { spec, review, brand: brandKey };
   const problems = o.spec._validation?.length
     ? `<p style="color:#8a3b2a"><b>Check ${o.spec._validation.length}:</b><br>${o.spec._validation.join('<br>')}</p>` : '';
 
@@ -71,8 +87,7 @@ export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: b
       <td style="padding:6px 0 6px 18px;text-align:right;white-space:nowrap">${dollars(H.range!.high[key] as any)}</td>
     </tr>`).join('');
 
-  await resend().emails.send({
-    from: FROM, to: o.to,
+  return {
     // The proposal number is in the subject on purpose: it is how a reply
     // carrying the marked-up page finds its way back to the right job.
     subject: o.review
@@ -127,8 +142,7 @@ export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: b
 
       <p style="margin-top:26px;padding-top:16px;border-top:1px solid ${b.line}">
         Full page attached, and in ${b.driveFolder}. Mark it up and reply with it attached — I read the marks and log them.</p>`, o.brand),
-    attachments: o.docs.map(d => ({ filename: d.filename, content: d.pdf.toString('base64') })),
-  });
+  };
 }
 
 /**
