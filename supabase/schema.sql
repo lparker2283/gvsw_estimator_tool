@@ -92,3 +92,16 @@ alter table corrections add column if not exists event_id text;
 alter table corrections add column if not exists confidence text;
 create unique index if not exists corrections_event_id_key on corrections (event_id);
 create index if not exists corrections_created_at_idx on corrections (created_at desc);
+
+-- Every table holds client data, and the server only ever reaches this database
+-- with the service_role key, which bypasses RLS. So RLS on with no policy is the
+-- intended state: the publishable key can then read nothing. Supabase's linter
+-- reports policy-less RLS as an INFO notice — that notice is the desired state.
+--
+-- This was applied by hand to jobs, corrections and config when they were made,
+-- and was missing from schema.sql, so inbound_failures — added later — came up
+-- without it. Stated here instead, where a new table cannot quietly skip it.
+alter table jobs              enable row level security;
+alter table inbound_failures  enable row level security;
+alter table corrections       enable row level security;
+alter table config            enable row level security;
