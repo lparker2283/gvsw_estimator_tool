@@ -1,0 +1,52 @@
+{
+  "proposal_no": "GVSW-2026-0148",
+  "date_issued": "2026-08-24",
+  "project_name": "Front steps — rebuild bluestone treads",
+  "onsite_days": 2,
+  "cross_check": {
+    "headline": "Unit price. Small job, ordinary access.",
+    "method_a": { "name": "Unit price, off the rate card", "value": 2860 },
+    "method_b": { "name": "Day rate", "low": 1200, "high": 1760 },
+    "gap": "Unit price runs about $1,300 above two days at the mason rate.",
+    "reading": "Unit pricing wins here because the material carries the cost, not the hours.",
+    "recommendation": "Quote unit. Hold the day rate in reserve if the client wants the risers reset too."
+  },
+  "scope": [
+    { "task": "Remove and salvage existing treads", "description": "Three bluestone treads lifted, cleaned and set aside for reuse.", "unit": "3 ea", "cost": 420, "contingent": false },
+    { "task": "Rebuild step core", "description": "Reset the block core to level, full mortar bed.", "unit": "18 sf", "cost": 1180, "contingent": false },
+    { "task": "Reset treads", "description": "Salvaged treads reset with a 2% wash, pointed in Type N.", "unit": "3 ea", "cost": 940, "contingent": false },
+    { "task": "Replace one cracked tread", "description": "One tread beyond salvage. New bluestone, matched thickness.", "unit": "1 ea", "cost": 320, "contingent": true, "contingency_note": "confirmed once lifted" }
+  ],
+  "derivation": [
+    { "line": "Remove and salvage existing treads", "card": "stone.stone_unit_reset", "range": "$120–180/ea", "qty": "3 ea", "low": 360, "high": 540, "chosen": 420, "rationale": "Low-middle: treads are accessible and undamaged." },
+    { "line": "Rebuild step core", "card": "stone.stone_wall_rebuild", "range": "$58–78/sf", "qty": "18 sf", "low": 1044, "high": 1404, "chosen": 1180, "rationale": "Middle: sound base, no excavation." },
+    { "line": "Reset treads", "card": "stone.stone_unit_reset", "range": "$280–360/ea", "qty": "3 ea", "low": 840, "high": 1080, "chosen": 940, "rationale": "Middle: level work, Type N pointing." },
+    { "line": "Replace one cracked tread", "card": "stone.stone_unit_supply", "range": "$260–400/ea", "qty": "1 ea", "low": 260, "high": 400, "chosen": 320, "rationale": "Middle: standard thickness, local supply." }
+  ],
+  "materials": [
+    { "material": "Bluestone tread", "spec": "2\" thermal, matched to existing", "qty": "1", "unit": "ea", "supplier": "Genesee Valley Stone", "cost": 190 },
+    { "material": "Type N mortar", "spec": "pre-1930 masonry — Portland will spall the face", "qty": "4", "unit": "bags", "supplier": "Admar", "cost": 62 }
+  ],
+  "totals": {
+    "labor": 2608,
+    "materials": 252,
+    "subtotal_ex_access": 2860,
+    "equipment": null,
+    "tax_rate_pct": 8,
+    "tax": 228.8,
+    "total": 3088.8,
+    "tax_classification": "taxable_repair",
+    "tax_note": "Repair, not complete replacement — taxable on the full billed amount."
+  },
+  "assumptions": [
+    { "what": "Three treads, not four", "why_it_matters": "A fourth adds roughly $450 across reset and pointing." }
+  ],
+  "open_items": [
+    { "item": "Whether the risers are sound", "impact": "Adds a day and about $600 if they are not.", "severity": "medium" }
+  ],
+  "tax_lines": [
+    { "line": "All lines", "cls": "taxable repair", "basis": "Partial replacement of an existing structure." }
+  ],
+  "unpriced": [],
+  "_validation": []
+}

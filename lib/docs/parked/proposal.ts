@@ -1,5 +1,5 @@
-import { page, money, esc, CO } from './shared';
-import { brandFor, DEFAULT_BRAND } from '../brand';
+import { page, money, esc, CO } from '../shared';
+import { brandFor, DEFAULT_BRAND } from '../../brand';
 
 const B = brandFor(DEFAULT_BRAND);
 

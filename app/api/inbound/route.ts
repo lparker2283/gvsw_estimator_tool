@@ -1,19 +1,31 @@
 /**
- * Resend inbound webhook. Dan emails a voice memo; this is where it lands.
- * Flow: verify -> pull audio -> transcribe -> extract -> store -> email him one link.
+ * Resend inbound webhook. One address, two jobs, told apart by what is attached.
+ *
+ *   audio  -> a new job:    verify -> pull audio -> transcribe -> extract -> email one link
+ *   PDF    -> a correction: verify -> pull PDF   -> read the marks -> ledger -> confirm
+ *
+ * Routing on the attachment rather than on a second address is deliberate. Dan
+ * replies to the email the brief arrived in; there is nothing to remember, no
+ * address to get right, and it works whether he marked it up on the reMarkable
+ * or on paper with a pencil and photographed it into a PDF.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { Webhook } from 'svix';
 import { transcribe } from '@/lib/transcribe';
 import { extract } from '@/lib/extract';
+import { readMarkup, digest } from '@/lib/corrections';
 import { db } from '@/lib/db';
-import { sendQuestionsEmail } from '@/lib/mail';
+import { sendQuestionsEmail, sendCorrectionsEmail } from '@/lib/mail';
 import { redact } from '@/lib/secrets';
 
 export const maxDuration = 120;
 
 const AUDIO = /\.(m4a|mp3|mp4|wav|aac|ogg|webm|amr|caf)$/i;
+const PDF = /\.pdf$/i;
+
+/** e.g. GVSW-2026-0147, wherever it appears — a filename, a subject, a reply prefix. */
+const PROPOSAL_NO = /\b[A-Z]{2,6}-\d{4}-\d{3,5}\b/;
 
 /**
  * How many times a memo may fail before this endpoint stops asking for another
@@ -35,7 +47,7 @@ const MAX_ATTEMPTS = Number(process.env.INBOUND_MAX_ATTEMPTS || 3);
  * The two inline branches come first because they cost nothing to keep and mean
  * a payload that does carry its own bytes still works.
  */
-async function loadAudio(emailId: string, att: any): Promise<Blob> {
+async function loadAttachment(emailId: string, att: any): Promise<Blob> {
   if (att.content_url) {
     const res = await fetch(att.content_url);
     if (!res.ok) throw new Error(`content_url fetch failed: ${res.status}`);
@@ -148,6 +160,107 @@ function isRetryable(err: unknown): boolean {
     .test(text);
 }
 
+/**
+ * A brief came back with marks on it.
+ *
+ * Finding the job is done by proposal number rather than by sender or by
+ * thread: the number is printed on the page, sits in the filename the tool
+ * chose, and survives in the subject line through every "Re:" a mail client
+ * adds. A reply from a different address — his phone, his wife's laptop, a
+ * scan-to-email box at the print shop — still lands on the right job.
+ *
+ * When no number can be found the delivery is NOT retried. A PDF with no
+ * proposal number on it will have no proposal number on it the second time
+ * either, and the row that gets written is enough to file it by hand.
+ */
+async function handleCorrection(
+  o: { payload: any; marked: any; subject: string; from: string; eventId: string },
+): Promise<NextResponse> {
+  const { payload, marked, subject, from, eventId } = o;
+
+  if (eventId) {
+    const already = await db.correctionsForEvent(eventId);
+    if (already) {
+      console.warn('[inbound] duplicate correction delivery ignored.', { eventId });
+      return NextResponse.json({ ok: true, deduped: true, mode: 'correction' });
+    }
+  }
+
+  const no = (marked.filename?.match(PROPOSAL_NO) || subject.match(PROPOSAL_NO) || [])[0];
+
+  let stage = 'identify job';
+  try {
+    if (!no) throw new Error(`no proposal number in filename "${marked.filename}" or subject "${subject.slice(0, 80)}"`);
+
+    const job = await db.getJobByProposalNo(no);
+    if (!job) throw new Error(`no job found for ${no}`);
+
+    stage = 'fetch marked-up pdf';
+    const blob = await loadAttachment(payload.email_id || payload.id || '', marked);
+    const pdf = Buffer.from(await blob.arrayBuffer());
+
+    stage = 'read markup';
+    const reading = await readMarkup(pdf, job.job_spec);
+
+    stage = 'write ledger';
+    await db.logCorrections((reading.marks || []).map(m => ({
+      job_id: job.id,
+      event_id: eventId || null,
+      source: 'annotation',
+      kind: ['quantity', 'rate', 'line'].includes(m.kind) ? m.kind : 'other',
+      line_ref: m.line_ref || null,
+      tool_value: m.tool_value || null,
+      dan_value: m.dan_value || null,
+      note: m.note || null,
+      confidence: m.confidence || null,
+    })));
+
+    /**
+     * An approved page has nothing to file, and an unreadable one must not be
+     * recorded as approval. Both still move the job on — the difference is
+     * only in what the confirmation says.
+     */
+    await db.updateJob(job.id, { status: reading.verdict === 'unreadable' ? 'delivered' : 'corrected' });
+
+    stage = 'confirm';
+    await sendCorrectionsEmail({
+      to: from || process.env.DAN_EMAIL!,
+      proposalNo: no,
+      reading,
+    });
+
+    return NextResponse.json({ ok: true, mode: 'correction', job: job.id, marks: reading.marks?.length ?? 0 });
+  } catch (err) {
+    const detail = redact(describe(err));
+    const retryable = stage !== 'identify job' && isRetryable(err);
+
+    console.error(`[inbound] correction failed during: ${stage}`, { message: detail, from, filename: marked.filename, retryable });
+
+    let attempts = 1;
+    try {
+      attempts = await db.recordInboundFailure({
+        event_id: eventId || null,
+        from_email: from || null,
+        filename: marked.filename || null,
+        email_id: payload.email_id || payload.id || null,
+        attachment_id: marked.id || null,
+        stage: `correction: ${stage}`,
+        detail: detail.slice(0, 2000),
+        retryable,
+      });
+    } catch (e) {
+      console.error('[inbound] could not record the correction failure.', { message: redact(describe(e)) });
+      return NextResponse.json({ error: 'correction failed', stage, detail: detail.slice(0, 400), recorded: false }, { status: 500 });
+    }
+
+    const again = retryable && attempts < MAX_ATTEMPTS;
+    return NextResponse.json(
+      { error: 'correction failed', stage, detail: detail.slice(0, 400), retryable, attempts, willRetry: again },
+      { status: again ? 500 : 200 },
+    );
+  }
+}
+
 export async function POST(req: NextRequest) {
   const raw = await req.text();
 
@@ -212,24 +325,34 @@ export async function POST(req: NextRequest) {
   const from: string = payload.from?.address || payload.from || '';
   const attachments: any[] = payload.attachments || [];
 
+  const subject: string = payload.subject || '';
+
+  /**
+   * Audio wins over PDF. A reply that quotes the original brief can carry both,
+   * and a mason who attaches a fresh memo to an old thread means the memo.
+   */
   const audio = attachments.find(a => AUDIO.test(a.filename || ''));
-  if (!audio) {
+  const marked = audio ? null : attachments.find(a => PDF.test(a.filename || ''));
+
+  if (!audio && !marked) {
     /**
      * A skip used to return 200 and say nothing, which from the sender's side is
      * indistinguishable from the mail never arriving. Log enough to name the
      * cause: the envelope's shape, and what the attachments actually were.
      * Keys and filenames only — the bodies are client data and stay out of logs.
      */
-    console.error('[inbound] no audio attachment — nothing to transcribe.', {
+    console.error('[inbound] no audio and no PDF — nothing to do.', {
       envelopeKeys: Object.keys(envelope ?? {}),
       unwrapped: payload !== envelope,
       payloadKeys: Object.keys(payload ?? {}),
       attachmentCount: attachments.length,
       filenames: attachments.map(a => a?.filename ?? '(no filename)'),
-      accepts: String(AUDIO),
+      accepts: `${AUDIO} | ${PDF}`,
     });
-    return NextResponse.json({ ok: true, skipped: 'no audio attachment' });
+    return NextResponse.json({ ok: true, skipped: 'no audio or PDF attachment' });
   }
+
+  if (marked) return handleCorrection({ payload, marked, subject, from, eventId });
 
   /**
    * Each step names itself before it runs. An unhandled throw here returns a
@@ -239,13 +362,13 @@ export async function POST(req: NextRequest) {
    */
   let stage = 'fetch audio';
   try {
-    const clip = await loadAudio(payload.email_id || payload.id || '', audio);
+    const clip = await loadAttachment(payload.email_id || payload.id || '', audio);
 
     stage = 'transcribe';
     const transcript = await transcribe(clip, audio.filename);
 
     stage = 'extract';
-    const extraction = await extract(transcript);
+    const extraction = await extract(transcript, digest(await db.recentCorrections().catch(() => [])));
 
     const token = crypto
       .createHmac('sha256', process.env.LINK_SIGNING_SECRET!)

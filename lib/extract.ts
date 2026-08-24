@@ -75,7 +75,7 @@ He reads this on a phone, standing on a job site, and he is not a words guy. Eve
 
 Return ONLY the JSON described by the tool schema.`;
 
-export async function extract(transcript: string): Promise<Extraction> {
+export async function extract(transcript: string, priorCorrections = ''): Promise<Extraction> {
   const msg = await anthropic().messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 4000,
@@ -111,6 +111,13 @@ export async function extract(transcript: string): Promise<Extraction> {
     messages: [{ role: 'user', content:
       `RATE CARD:\n${JSON.stringify(ratecard)}\n\n` +
       `COMPLETENESS RULES FOR CHIMNEY WORK (adapt the same logic to other categories):\n${JSON.stringify(chimney)}\n\n` +
+      /**
+       * Corrections classified as `quantity` are the ones that belong here
+       * rather than in pricing: a quantity Dan had to fix by hand is a thing the
+       * extractor misheard or never asked about, and the cheapest fix is to ask
+       * about it next time.
+       */
+      (priorCorrections ? `WHAT THIS TOOL GOT WRONG BEFORE, corrected by Dan on returned documents. Ask about the things it keeps missing:\n${priorCorrections}\n\n` : '') +
       `MEMO TRANSCRIPT:\n"""${transcript}"""` }],
   });
 

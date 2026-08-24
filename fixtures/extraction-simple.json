@@ -1,0 +1,14 @@
+{
+  "category": "stone",
+  "fields": [],
+  "suppressed": [],
+  "refusals": [],
+  "findings": [
+    {
+      "finding": "The handrail bracket is set into the tread being replaced.",
+      "implication": "It has to come off and go back on, or the tread cannot be lifted.",
+      "severity": "medium"
+    }
+  ],
+  "questions": []
+}

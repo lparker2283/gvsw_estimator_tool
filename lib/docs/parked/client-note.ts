@@ -1,4 +1,4 @@
-import { page, money, esc, CO } from './shared';
+import { page, money, esc, CO } from '../shared';
 
 export function clientNote(spec: any) {
   const T = spec.totals;
