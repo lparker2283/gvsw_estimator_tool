@@ -229,12 +229,27 @@ export function validate(spec: any) {
    */
   const R = spec.range;
   if (R) {
+    /**
+     * A null row is two different states wearing one face. Equipment is null on
+     * the chimney because nobody has quoted the lift, and null on a set of front
+     * steps because the job needs no equipment. Conditions is null whenever none
+     * of the card's named adjustment factors applies, which is a settled answer
+     * and never a gap.
+     *
+     * Reading every null as "unpriced" is the same one-job assumption that used
+     * to withhold the total: it makes a fully priced job hedge — "Range, so far",
+     * "a row is still unpriced" — directly above a totals block that has already
+     * committed to a number. So the column defers to the job. A figure is
+     * outstanding only where a scope line is itself NOT PRICED, which is what the
+     * extraction records when he has not called the rental yard.
+     */
+    const awaitingQuote = (spec.scope || []).some((s: any) => s.cost === null || s.cost === undefined);
     for (const col of ['low', 'high'] as const) {
       const c = R[col];
       if (!c) continue;
       const parts = [c.labor, c.materials, c.equipment, c.conditions];
       c.total = parts.reduce((a: number, n: any) => a + (Number(n) || 0), 0);
-      c.partial = parts.some((n: any) => n === null || n === undefined);
+      c.partial = awaitingQuote && parts.some((n: any) => n === null || n === undefined);
     }
     if (R.low?.total != null && R.high?.total != null && R.low.total > R.high.total)
       problems.push(`range is inverted: low ${R.low.total} exceeds high ${R.high.total}`);
