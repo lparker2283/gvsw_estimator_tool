@@ -12,28 +12,33 @@ const PDF_OPTIONS = {
 };
 
 /**
- * Tell @sparticuz/chromium it is on Lambda, because Vercel will not.
+ * Ask @sparticuz/chromium for the Amazon Linux 2023 libraries, always.
  *
- * That package ships Chromium and, separately, the shared libraries Amazon
- * Linux does not carry — libnss3 among them. It only unpacks those libraries,
- * and only sets LD_LIBRARY_PATH to point at them, when it believes it is
- * running on Lambda. It decides that by reading AWS_EXECUTION_ENV,
- * AWS_LAMBDA_JS_RUNTIME or CODEBUILD_BUILD_IMAGE, and Vercel sets none of the
- * three.
+ * The package ships Chromium and, separately, the shared libraries the base
+ * image does not carry. It unpacks them, and points LD_LIBRARY_PATH at them,
+ * only when it believes it is on Lambda — decided from AWS_EXECUTION_ENV,
+ * AWS_LAMBDA_JS_RUNTIME or CODEBUILD_BUILD_IMAGE, none of which Vercel sets.
+ * Without that, Chromium unpacked alone and died on a missing libnss3.
  *
- * So the browser unpacked, launched, and died on
- * `libnss3.so: cannot open shared object file` — the binary was always there,
- * the libraries beside it never were. The first real run failed here, four
- * times, and looked from the outside like a job that simply stopped.
+ * Setting the variable opened the gate but exposed a second fault, because
+ * there are two library sets and the package picks between them by string
+ * match. `al2023.tar.br` carries the full NSS set — libnspr4, libplc4, libplds4
+ * and the freebl pair. `al2.tar.br` carries six files and none of those,
+ * because on real Lambda the AL2 image already provides them. Vercel's image
+ * does not.
  *
- * The runtime version is derived rather than hardcoded because it selects
- * which library set is unpacked: Node 20 and 22 are Amazon Linux 2023, and
- * anything older is AL2. Guessing wrong swaps one missing-library error for
- * another. `??=` leaves a real value alone if the platform ever sets one.
+ * The version is hardcoded rather than derived from `process.versions.node`,
+ * which is what the previous attempt did and why the error moved from libnss3
+ * to libnspr4 instead of going away. The package's check whitelists the exact
+ * strings "20.x" and "22.x"; every other runtime, newer as well as older,
+ * falls through to the six-file AL2 set. Deriving the truth therefore selects
+ * the wrong archive on any runtime the package has not heard of, which is a
+ * guarantee that this breaks again on the next Node release.
+ *
+ * `??=` leaves a real value alone if the platform ever starts setting one.
  */
 if (process.env.VERCEL && !process.env.AWS_EXECUTION_ENV) {
-  const major = Number(process.versions.node.split('.')[0]) || 20;
-  process.env.AWS_LAMBDA_JS_RUNTIME ??= `nodejs${major}.x`;
+  process.env.AWS_LAMBDA_JS_RUNTIME ??= 'nodejs22.x';
 }
 
 async function launch() {
@@ -49,11 +54,26 @@ async function launch() {
   // libraries the moment it is first evaluated, so the environment above has to
   // be set before that happens. A static import is hoisted and would run first.
   const chromium = (await import('@sparticuz/chromium')).default;
-  return puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: true,
-  });
+  try {
+    return await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
+  } catch (err) {
+    /**
+     * Two rounds of this were diagnosed by reading a missing library name and
+     * guessing which archive had been unpacked. The answer was in the runtime
+     * the whole time, so it travels with the error now. `describe()` in the
+     * submit route walks the cause chain, so both messages reach the ledger.
+     */
+    throw new Error(
+      `chromium launch failed on node ${process.versions.node} · ` +
+      `AWS_LAMBDA_JS_RUNTIME=${process.env.AWS_LAMBDA_JS_RUNTIME ?? 'unset'} · ` +
+      `LD_LIBRARY_PATH=${process.env.LD_LIBRARY_PATH ?? 'unset'}`,
+      { cause: err },
+    );
+  }
 }
 
 /**
