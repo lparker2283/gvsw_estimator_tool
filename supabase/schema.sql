@@ -5,6 +5,7 @@ create table jobs (
   created_at      timestamptz not null default now(),
   status          text not null default 'transcribed',
     -- transcribed -> awaiting_answers -> generating -> delivered -> corrected
+    -- generating -> failed  (see the failure column)
   from_email      text,
   audio_url       text,
   transcript      text not null,
@@ -92,6 +93,11 @@ alter table corrections add column if not exists event_id text;
 alter table corrections add column if not exists confidence text;
 create unique index if not exists corrections_event_id_key on corrections (event_id);
 create index if not exists corrections_created_at_idx on corrections (created_at desc);
+
+-- Applied separately as supabase/migrations/2026-08-25-jobs-failure.sql for a
+-- database that already exists; included here so a fresh one is correct.
+alter table jobs add column if not exists failure text;
+create index if not exists jobs_status_created_idx on jobs (status, created_at desc);
 
 -- Every table holds client data, and the server only ever reaches this database
 -- with the service_role key, which bypasses RLS. So RLS on with no policy is the
