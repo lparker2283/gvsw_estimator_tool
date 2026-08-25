@@ -24,8 +24,22 @@ export default function Questions({ params }: { params: Promise<{ token: string 
   const [free, setFree] = useState('');
   const [typing, setTyping] = useState(false);
   const [why, setWhy] = useState(false);
-  const [done, setDone] = useState(false);
-  const [busy, setBusy] = useState(false);
+
+  /**
+   * One phase, not a `done` flag and a `busy` flag.
+   *
+   * Those two were independent booleans, and submitting used to leave the
+   * question screen on the page with every option quietly disabled and nothing
+   * else changed. From the outside that is indistinguishable from a page that
+   * has broken — so the natural move is to press back, which was still live,
+   * landing on an earlier question where the options were also disabled. The
+   * page looked dead for the thirty to ninety seconds the submit actually takes.
+   *
+   * A single phase makes that state impossible: while it is submitting there is
+   * no question screen to press.
+   */
+  const [phase, setPhase] = useState<'asking' | 'submitting' | 'done' | 'failed'>('asking');
+  const [failure, setFailure] = useState('');
 
   useEffect(() => {
     fetch(`/api/job/${token}`).then(r => r.json()).then(setJob);
@@ -34,8 +48,66 @@ export default function Questions({ params }: { params: Promise<{ token: string 
   const brand = brandFor(job?.brand);
   const S = styles(brand);
 
+  const qs: any[] = job?.questions || [];
+
+  /**
+   * Submitting is slow and it is slow for real reasons — a pricing call, a PDF
+   * rendered in headless Chromium, a Drive upload, an email. Half a minute at
+   * best. So it gets a screen of its own rather than a disabled button, and the
+   * screen says what is happening. Silence for that long reads as failure.
+   */
+  const submit = async (final: Record<string, string>) => {
+    setPhase('submitting');
+    setFailure('');
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, answers: final }),
+      });
+      // fetch does not throw on 4xx/5xx. Without this the page announced "Done."
+      // over a failed submit, which is the worst of the available outcomes.
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `submit failed (${res.status})`);
+      }
+      setPhase('done');
+    } catch (e: any) {
+      // Every path out of the try sets a phase. The old code cleared `busy`
+      // after the await with no catch, so a failure left every control disabled
+      // for good and the only way out was reloading the page.
+      setFailure(e?.message || 'Something went wrong.');
+      setPhase('failed');
+    }
+  };
+
   if (!job) return <Shell brand={brand}><p style={S.dim}>Loading…</p></Shell>;
-  if (done) return (
+
+  if (job.error || !qs.length) return (
+    <Shell brand={brand}>
+      <h1 style={S.h1}>This link has nothing on it.</h1>
+      <p style={S.body}>It may already have been answered. Send the memo again and I&apos;ll send a fresh one.</p>
+    </Shell>
+  );
+
+  if (phase === 'submitting') return (
+    <Shell brand={brand}>
+      <h1 style={S.h1}>Pricing it.</h1>
+      <p style={S.body}>Around a minute — the numbers, then the page itself. Leave this open.</p>
+      <div style={S.barTrack}><div style={S.barFill} /></div>
+      <style>{'@keyframes gvsw-slide{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}'}</style>
+    </Shell>
+  );
+
+  if (phase === 'failed') return (
+    <Shell brand={brand}>
+      <h1 style={S.h1}>That didn&apos;t go through.</h1>
+      <p style={S.body}>{failure}</p>
+      <p style={S.body}>Your answers are still here.</p>
+      <button onClick={() => submit(answers)} style={S.retry}>Try again</button>
+    </Shell>
+  );
+
+  if (phase === 'done') return (
     <Shell brand={brand}>
       <h1 style={S.h1}>Done.</h1>
       <p style={S.body}>
@@ -44,7 +116,6 @@ export default function Questions({ params }: { params: Promise<{ token: string 
     </Shell>
   );
 
-  const qs = job.questions || [];
   const q = qs[i];
   const last = i === qs.length - 1;
 
@@ -52,16 +123,14 @@ export default function Questions({ params }: { params: Promise<{ token: string 
   // keyboard belongs to the question it was opened on, not the next one.
   const go = (n: number) => { setI(n); setFree(''); setTyping(false); setWhy(false); };
 
-  const answer = async (val: string) => {
+  const answer = (val: string) => {
+    // A double tap on the last option used to be able to start two submits —
+    // two proposal numbers, two emails, two rows. The phase is the guard.
+    if (phase !== 'asking') return;
     const next = { ...answers, [q.id]: val };
     setAnswers(next);
     if (!last) { go(i + 1); return; }
-    setBusy(true);
-    await fetch('/api/submit', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, answers: next }),
-    });
-    setBusy(false); setDone(true);
+    submit(next);
   };
 
   const entry = (
@@ -70,8 +139,8 @@ export default function Questions({ params }: { params: Promise<{ token: string 
         placeholder={q.unit || ''} inputMode={q.unit ? 'decimal' : 'text'} style={S.input}
         onKeyDown={e => { if (e.key === 'Enter' && free.trim()) answer(free.trim()); }} />
       {free.trim() && (
-        <button onClick={() => answer(free.trim())} disabled={busy} style={S.go}>
-          {last ? (busy ? '…' : 'Done') : 'Next'}
+        <button onClick={() => answer(free.trim())} style={S.go}>
+          {last ? 'Done' : 'Next'}
         </button>
       )}
     </div>
@@ -98,7 +167,7 @@ export default function Questions({ params }: { params: Promise<{ token: string 
           const dunno = DUNNO.test(o);
           const label = o.replace(REC, '').replace(/\s{2,}/g, ' ').trim();
           return (
-            <button key={o} onClick={() => answer(label)} disabled={busy}
+            <button key={o} onClick={() => answer(label)}
               style={{ ...S.opt, ...(rec ? S.optRec : {}), ...(dunno ? S.optDunno : {}) }}>
               <span>{label}</span>
               {rec && <span style={S.usual}>usual</span>}
@@ -169,5 +238,12 @@ function styles(b: Brand): Record<string, React.CSSProperties> {
                cursor:'pointer', textDecoration:'underline', textUnderlineOffset:'3px' },
     back:    { marginTop:'22px', background:'none', border:'none', color:b.muted, fontSize:'14px',
                fontFamily:'inherit', cursor:'pointer', padding:0 },
+    // Movement, not a percentage. Nothing here knows how far along it is, and a
+    // progress bar that invents a percentage is a progress bar that lies at 90%.
+    barTrack:{ marginTop:'28px', height:'3px', borderRadius:'2px', background:b.lineSoft, overflow:'hidden' },
+    barFill: { width:'30%', height:'100%', borderRadius:'2px', background:b.accent,
+               animation:'gvsw-slide 1.5s ease-in-out infinite' },
+    retry:   { marginTop:'22px', padding:'15px 26px', fontSize:'17px', fontFamily:'inherit', fontWeight:600,
+               background:b.accent, color:b.surface, border:'none', borderRadius:'9px', cursor:'pointer' },
   };
 }

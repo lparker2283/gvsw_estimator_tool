@@ -1,4 +1,4 @@
-import { htmlToPdf } from '../render';
+import { renderMany } from '../render';
 import { brief } from './brief';
 
 /**
@@ -22,10 +22,11 @@ const slug = (s: string) => String(s || 'estimate')
   .slice(0, 60);
 
 export async function buildDocuments(spec: any, extraction: any, _transcript: string): Promise<Doc[]> {
-  return [{
-    name: 'Brief',
-    filename: `${slug(spec.proposal_no)}-Brief.pdf`,
-    audience: 'dan',
-    pdf: await htmlToPdf(brief(spec, extraction)),
-  }];
+  const pages: { name: string; filename: string; audience: Doc['audience']; html: string }[] = [
+    { name: 'Brief', filename: `${slug(spec.proposal_no)}-Brief.pdf`, audience: 'dan', html: brief(spec, extraction) },
+  ];
+  // Through renderMany even for one, so that adding a second document back is a
+  // line in this array rather than a second browser in the same lambda.
+  const pdfs = await renderMany(pages.map(p => p.html));
+  return pages.map((p, i) => ({ name: p.name, filename: p.filename, audience: p.audience, pdf: pdfs[i] }));
 }
