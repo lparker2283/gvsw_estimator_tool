@@ -68,7 +68,12 @@ Return ONLY the tool JSON.`;
 
 export async function readMarkup(pdf: Buffer, spec: any): Promise<Reading> {
   const printedLines = (spec?.scope || [])
-    .map((s: any, i: number) => `${i + 1}. ${s.task} — ${s.cost === null ? 'NOT PRICED' : '$' + s.cost}`)
+    .map((s: any, i: number) => {
+      const range = s.low == null && s.high == null
+        ? 'NOT PRICED'
+        : `$${s.low ?? '?'}–$${s.high ?? '?'}`;
+      return `${i + 1}. ${s.task} — ${range}`;
+    })
     .join('\n');
 
   const msg = await anthropic().messages.create({

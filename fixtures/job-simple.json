@@ -23,30 +23,34 @@
       "task": "Remove and salvage existing treads",
       "description": "Three bluestone treads lifted, cleaned and set aside for reuse.",
       "unit": "3 ea",
-      "cost": 420,
-      "contingent": false
+      "contingent": false,
+      "low": 360,
+      "high": 540
     },
     {
       "task": "Rebuild step core",
       "description": "Reset the block core to level, full mortar bed.",
       "unit": "18 sf",
-      "cost": 1180,
-      "contingent": false
+      "contingent": false,
+      "low": 1044,
+      "high": 1404
     },
     {
       "task": "Reset treads",
       "description": "Salvaged treads reset with a 2% wash, pointed in Type N.",
       "unit": "3 ea",
-      "cost": 940,
-      "contingent": false
+      "contingent": false,
+      "low": 840,
+      "high": 1080
     },
     {
       "task": "Replace one cracked tread",
       "description": "One tread beyond salvage. New bluestone, matched thickness.",
       "unit": "1 ea",
-      "cost": 320,
       "contingent": true,
-      "contingency_note": "confirmed once lifted"
+      "contingency_note": "confirmed once lifted",
+      "low": 260,
+      "high": 400
     }
   ],
   "derivation": [
