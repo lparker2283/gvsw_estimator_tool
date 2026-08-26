@@ -1,4 +1,4 @@
-import { page, money, esc, CO } from './shared';
+import { page, esc, CO } from './shared';
 import { highlights, daySpan, dollars, effectiveRateLine, ROWS, type Highlights } from '../highlights';
 
 /**
@@ -98,14 +98,26 @@ export function brief(spec: any, extraction: any) {
     ${has('Project scope & line cost basis') ? `
       ${sec('Project scope & line cost basis')}
       <table><thead><tr><th style="width:26px">#</th><th>Line</th>
-        <th style="text-align:right;width:88px">Cost</th><th style="width:30%">Basis</th></tr></thead><tbody>
-        ${scope.map((s: any, i: number) => `
+        <th style="text-align:right;width:70px">Low</th><th style="text-align:right;width:70px">High</th>
+        <th style="width:28%">Basis</th></tr></thead><tbody>
+        ${scope.map((s: any, i: number) => {
+          const unpriced = s.low == null && s.high == null;
+          const star = s.contingent && !unpriced ? ' *' : '';
+          return `
           <tr>
             <td class="num">${i + 1}</td>
             <td class="k">${esc(s.task)}<div class="sub-line">${esc(s.description)}</div></td>
-            <td class="r${s.cost === null ? ' warn' : ''}">${money(s.cost)}${s.contingent && s.cost !== null ? ' *' : ''}</td>
+            ${unpriced
+              ? `<td class="r warn" colspan="2">NOT PRICED</td>`
+              : `<td class="r">${dollars(s.low ?? null)}${star}</td><td class="r">${dollars(s.high ?? null)}${star}</td>`}
             <td class="basis">${basisFor(s.task, i)}${s.unit ? `<div class="sub-line">${esc(s.unit)}</div>` : ''}</td>
-          </tr>`).join('')}
+          </tr>`; }).join('')}
+        <tr class="strong">
+          <td class="num"></td><td class="k">Scope subtotal</td>
+          <td class="r">${dollars(spec.totals?.scope_low ?? null)}</td>
+          <td class="r">${dollars(spec.totals?.scope_high ?? null)}</td>
+          <td class="basis">${scope.some((s: any) => s.low == null && s.high == null) ? 'excludes the unpriced lines' : ''}</td>
+        </tr>
       </tbody></table>
       ${scope.some((s: any) => s.contingent) ? '<p class="note">* Contingent — in the high column, out of the low.</p>' : ''}
       ${H.taxAction

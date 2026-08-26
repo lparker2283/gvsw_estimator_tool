@@ -24,6 +24,8 @@ RULES
 
 2. The committed figure must sit inside the cited band, and you must say why it lands where it does inside that band.
 
+2a. Every scope line carries a low and a high, derived the same way the range columns are. Both are null ONLY where nobody has quoted the line and no card band covers it — an access rental with no call made. A line you can bound from the card is never null, and "I would rather not commit" is not a reason to leave one empty: the two ends are how this page declines to commit.
+
 3. This document is INTERNAL — read by the mason, never sent to a client. His own card says so. That does not license invention; it licenses labelling. A figure you can ground goes in with its basis named. A figure you cannot — a rental nobody has quoted — is null, with a note saying what it is and why there is no number yet. Never an unlabelled number.
 
 3a. THE RANGE IS THE PRODUCT, not a committed price. He commits to a figure himself, later, in his own proposal. Your job is to hand him two ends and make the distance between them explainable.
@@ -160,9 +162,19 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                             grounded_in:{ type:'string', description:'the rate card key, the integrity spec, or the quoted words from the memo this rests on' } } } },
 
           validity:   { type:'string', description:'how long the range holds and what would move it — name the volatile input for this job' },
-          scope:      { type:'array', items:{type:'object', required:['task','description','unit','cost','contingent'],
+          /**
+           * Two ends per line, never one committed figure. The page leads with a
+           * range and 3a tells you not to commit a price; a `cost` column asked
+           * the same model for a single number anyway, so it returned null on
+           * every line and the table printed NOT PRICED five times under a range
+           * that read $1,820–$5,940. Same question, two shapes, one of them
+           * unanswerable.
+           */
+          scope:      { type:'array', items:{type:'object', required:['task','description','unit','low','high','contingent'],
                           properties:{ task:{type:'string'}, description:{type:'string'}, unit:{type:'string'},
-                            cost:{type:['number','null']}, contingent:{type:'boolean'}, contingency_note:{type:'string'} } } },
+                            low:{type:['number','null'], description:'this line at the bottom of its cited band and the smaller quantity'},
+                            high:{type:['number','null'], description:'this line at the top of its cited band and the larger quantity'},
+                            contingent:{type:'boolean'}, contingency_note:{type:'string'} } } },
           derivation: { type:'array', items:{type:'object', required:['line','card','range','qty','chosen','rationale'],
                           properties:{ line:{type:'string'}, card:{type:'string'}, range:{type:'string'},
                             qty:{type:'string'}, low:{type:['number','null']}, high:{type:['number','null']},
@@ -208,25 +220,59 @@ export function validate(spec: any) {
   const problems: string[] = [];
   const card: any = ratecard;
 
+  /**
+   * A citation resolves against `categories.<cat>.items.<key>` OR against the
+   * card's other top-level sections — quick_reference, adjustment_factors,
+   * integrity_specs, tax. Only the first was checked, so every honest citation
+   * of an hourly rate or an adjustment factor was reported as a missing key.
+   * Two of those reached Dan's page, and the model had been right both times.
+   */
+  const cardHas = (cat: string, key: string) =>
+    !!(card.categories?.[cat]?.items?.[key] ?? card?.[cat]?.[key]);
+
   for (const d of spec.derivation || []) {
     if (d.card && d.card.includes('.')) {
       const [cat, key] = d.card.split('.');
-      if (!card.categories?.[cat]?.items?.[key]) problems.push(`derivation "${d.line}" cites missing card key ${d.card}`);
+      if (!cardHas(cat, key)) problems.push(`derivation "${d.line}" cites missing card key ${d.card}`);
     }
     if (d.chosen != null && d.low != null && d.high != null && (d.chosen < d.low || d.chosen > d.high))
       problems.push(`derivation "${d.line}" chose ${d.chosen} outside ${d.low}-${d.high}`);
   }
 
-  const scopeSum = (spec.scope || []).reduce((a: number, s: any) => a + (s.cost || 0), 0);
-  if (spec.totals?.subtotal_ex_access != null && Math.abs(scopeSum - spec.totals.subtotal_ex_access) > 1)
-    problems.push(`scope sums to ${scopeSum} but subtotal_ex_access is ${spec.totals.subtotal_ex_access}`);
+  /**
+   * The scope subtotal, both ends. `totals` is not rendered on the page or in the
+   * email any more — the range is — so this exists to be summed once here rather
+   * than trusted from the model, and the old cross-check against
+   * `subtotal_ex_access` is gone with it. It compared a committed-price field to
+   * a column of nulls and reported the difference as an arithmetic fault.
+   */
+  const sumEnd = (end: 'low' | 'high') =>
+    (spec.scope || []).reduce((a: number, s: any) => a + (Number(s[end]) || 0), 0);
 
-  const matSum = (spec.materials || []).reduce((a: number, m: any) => a + (m.cost || 0), 0);
   if (spec.totals) {
-    spec.totals.materials = matSum;
-    spec.totals.labor = scopeSum - matSum;
-    spec.totals.subtotal_ex_access = scopeSum;
+    spec.totals.scope_low = sumEnd('low');
+    spec.totals.scope_high = sumEnd('high');
   }
+
+  for (const s2 of spec.scope || []) {
+    if (s2.low != null && s2.high != null && s2.low > s2.high)
+      problems.push(`scope line "${s2.task}" is inverted: low ${s2.low} exceeds high ${s2.high}`);
+  }
+
+  /**
+   * The failure this shape exists to prevent, stated as a check.
+   *
+   * On GVSW-2026-0004 every line came back empty under a range reading
+   * $1,820–$5,940, and the page printed NOT PRICED five times to a mason who was
+   * meant to quote from it. Nothing said so; it took reading the derivation to
+   * find that the numbers had been there all along. If the model ever drifts
+   * back to answering the old question, this says so on the review copy instead
+   * of leaving it to be discovered in the field.
+   */
+  const lines: any[] = spec.scope || [];
+  const empty = lines.filter((s2: any) => s2.low == null && s2.high == null);
+  if (lines.length && empty.length === lines.length)
+    problems.push(`every scope line is unpriced (${lines.length} of ${lines.length}) — the range carries figures the lines do not`);
 
   /**
    * The range, summed here rather than by the model. Four rows, two columns, and
@@ -251,7 +297,7 @@ export function validate(spec: any) {
      * outstanding only where a scope line is itself NOT PRICED, which is what the
      * extraction records when he has not called the rental yard.
      */
-    const awaitingQuote = (spec.scope || []).some((s: any) => s.cost === null || s.cost === undefined);
+    const awaitingQuote = (spec.scope || []).some((s: any) => s.low == null && s.high == null);
     for (const col of ['low', 'high'] as const) {
       const c = R[col];
       if (!c) continue;

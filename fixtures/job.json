@@ -6,40 +6,45 @@
       "task": "Access — tracked (spider) lift",
       "description": "Compact tracked lift, narrow-chassis class, sized to reach the upper section. Rental, delivery, and site setup. NOT YET QUOTED — see note below",
       "unit": "Rental",
-      "cost": null,
       "contingent": true,
-      "contingency_note": "quotation pending"
+      "contingency_note": "quotation pending",
+      "low": null,
+      "high": null
     },
     {
       "task": "Site protection — flagstone path",
       "description": "Track matting and equivalent protection across the landscaped approach for the duration of access. Allowance — $150 material, balance labour to lay and lift",
       "unit": "Allowance",
-      "cost": 300,
-      "contingent": false
+      "contingent": false,
+      "low": 200,
+      "high": 500
     },
     {
       "task": "Repoint — upper section",
       "description": "Rake and repoint failed mortar joints, top section. Type N or NHL lime mortar per historic specification",
       "unit": "Allowance — area confirmed on site",
-      "cost": 1100,
       "contingent": true,
-      "contingency_note": "priced on assumed face area, measured at setup"
+      "contingency_note": "priced on assumed face area, measured at setup",
+      "low": 704,
+      "high": 1232
     },
     {
       "task": "Stone unit reset — allowance",
       "description": "Lift, re-bed and repoint shifted stones. Count not established from ground observation — allowance for three units",
       "unit": "3 each (allowance)",
-      "cost": 690,
       "contingent": true,
-      "contingency_note": "count confirmed once at height; billed as performed"
+      "contingency_note": "count confirmed once at height; billed as performed",
+      "low": 360,
+      "high": 1050
     },
     {
       "task": "Top inspection and seal",
       "description": "Cap reported intact from ground. Verify condition at height, seal top and upper joints against water entry. Chimney is out of service — water shedding is the only remaining function",
       "unit": "Allowance",
-      "cost": 350,
       "contingent": true,
-      "contingency_note": "reduced from closure scope — cap confirmed present; revisits only if the cap proves failed at height"
+      "contingency_note": "reduced from closure scope — cap confirmed present; revisits only if the cap proves failed at height",
+      "low": 280,
+      "high": 750
     }
   ],
   "materials": [

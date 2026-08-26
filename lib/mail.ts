@@ -67,53 +67,56 @@ export async function deliver(
  * The body, built apart from the sending of it.
  *
  * Split out so the email can be rendered and looked at without a live job, an
- * API key, or a memo — the same reason the documents have a smoke test. An email
- * nobody can preview is an email whose first reader is Dan.
+ * API key, or a memo. An email nobody can preview is an email whose first
+ * reader is Dan.
  *
- * It used to be the document again, in HTML: every section, a four-row range
- * table, the rate-card key under each objection. Two renderings of the same
- * page, one of which he could not mark up. So the email says the thing out loud
- * instead — how he would charge it, the two ends of the range, what is missing
- * from the number, how long, what to gather before quoting, and what else is
- * worth knowing. The breakdown is attached, and that is where detail belongs.
+ * IT SHOULD LOOK LIKE A PERSON SENT IT.
+ *
+ * The previous version had a wordmark, an accent colour, five uppercase
+ * letter-spaced headings, a tinted callout box with a coloured left border, a
+ * bold CRITICAL tag and four type sizes — brand furniture around a message that
+ * is two hundred words long. It read as a system notification, and the eye had
+ * nowhere to land.
+ *
+ * So: Gmail's own font at one size, black text, one grey for asides, bold for
+ * emphasis and nothing else. No boxes, no rules, no colour. The three things he
+ * needs off a phone screen are the price, that it is incomplete, and what to do
+ * next, and they are the only bold lines in it.
  */
 export function deliveryEmail(
   spec: any, extraction?: any, review = false, brandKey?: string,
 ): { subject: string; html: string } {
-  const b = brandFor(brandKey);
   const H = highlights(spec);
-
   const findings: any[] = (extraction?.findings || []).filter((f: any) => f.severity !== 'low');
 
-  // Validation is the tool doubting its own arithmetic. It belongs to whoever is
-  // reviewing, not to the mason, and it is off the document entirely now.
-  const problems = review && spec._validation?.length
-    ? `<p style="color:#8a3b2a;font-size:14px"><b>Check ${spec._validation.length}:</b><br>${spec._validation.join('<br>')}</p>` : '';
-
-  const h2 = `font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${b.muted};font-weight:700;margin:24px 0 6px`;
-  const li = (t: string) => `<li style="margin-bottom:5px">${t}</li>`;
-
-  /**
-   * The opening, assembled rather than written, because every figure in it is one
-   * this job produced: how to charge, the two ends, what is not in either end
-   * yet, and how long. A range that silently omits the unquoted line is the same
-   * failure as a total that does.
-   *
-   * The recommendation is quoted whole and never bent into the sentence around
-   * it. It is written as a decision in its own words — "Day rate. Not per square
-   * foot." — and lowercasing that to splice it after "I would price this" gave
-   * "price this day rate. not per square foot", which is neither his sentence nor
-   * a grammatical one. So it stands on its own line, as it was written.
-   */
-  const money2 = (n: any) => dollars(n ?? null);
   const both = H.range && H.range.low.total != null && H.range.high.total != null;
   const partial = !!(H.range && (H.range.low.partial || H.range.high.partial));
 
-  const figures = [
-    both ? `Charging anywhere from <b>${money2(H.range!.low.total)}</b> to <b>${money2(H.range!.high.total)}</b>` : '',
-    partial ? ', <b>plus what is still unpriced</b>' : '',
-    H.duration ? `${both ? ', and booking' : 'Booking'} <b>${daySpan(H.duration)}</b> on site` : '',
-  ].filter(Boolean).join('');
+  const GREY = '#666';
+  const p = 'margin:0 0 14px';
+  const li = (t: string) => `<li style="margin-bottom:8px">${t}</li>`;
+
+  /**
+   * Two sentences, and they carry the first two of the three things: how he
+   * would charge it with both ends and a duration, and — its own sentence,
+   * because it is the one people skim past — that the number is incomplete.
+   */
+  const headline = [
+    // The human opener rides on the front of the price rather than sitting above
+    // it in its own paragraph. Warmth costs four words here; as a paragraph of
+    // its own it cost a block of screen before the number he opened this for.
+    `Here's where I'd start:`,
+    H.model ? `<b>${H.model.recommendation.replace(/\.$/, '')}</b>` : '',
+    both ? `— roughly <b>${dollars(H.range!.low.total ?? null)} to ${dollars(H.range!.high.total ?? null)}</b>` : '',
+    H.duration ? `over <b>${daySpan(H.duration)}</b> on site` : '',
+  ].filter(Boolean).join(' ') + '.';
+
+  /**
+   * Next steps, in the order he would do them, and always ending the same way:
+   * the marked-up page is the last step of every job, and it is the only step
+   * that makes the next estimate better.
+   */
+  const steps = [...H.nextSteps, 'Mark up the attached brief and reply with it — I read the marks and log them.'];
 
   return {
     // The proposal number is in the subject on purpose: it is how a reply
@@ -121,41 +124,29 @@ export function deliveryEmail(
     subject: review
       ? `[REVIEW] ${H.proposalNo} — ready for Dan`
       : `${H.proposalNo} — ${H.projectName}`,
-    html: wrap(`
-      ${review ? '<p style="color:#8a3b2a"><b>Review copy.</b> Nothing has gone to Dan.</p>' : ''}
+    html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#222;max-width:600px">
+      ${review ? `<p style="${p};color:${GREY}">Review copy — nothing has gone to Dan.</p>` : ''}
 
-      <p style="margin:0 0 10px;font-size:17px;line-height:1.55">Based on your memo and your
-        answers to my questions, here is how I would price it.</p>
+      <p style="${p}">${headline}</p>
 
-      ${H.model ? `<p style="font-size:19px;font-weight:700;color:${b.inkStrong};margin:0 0 8px">${H.model.recommendation}</p>` : ''}
+      ${partial ? `<p style="${p}"><b>That number is not complete yet</b> — ${
+        H.range?.equipment_note || 'some of the job is still unpriced.'}</p>` : ''}
 
-      ${figures ? `<p style="margin:0 0 12px;font-size:17px;line-height:1.55">${figures}.</p>` : ''}
-
-      ${H.model?.why ? `<p style="margin:0 0 12px">${H.model.why}</p>` : ''}
-
-      ${partial && H.range?.equipment_note
-        ? `<p style="margin:0 0 12px;color:${b.muted}">${H.range.equipment_note}</p>` : ''}
-
-      ${H.effectiveRate ? `<p style="margin:16px 0;padding:12px 14px;background:${b.accentSoft};
-          border-left:3px solid ${b.accent};font-weight:700">${effectiveRateLine(H.effectiveRate)}</p>` : ''}
-
-      ${H.blockers.length ? `
-        <div style="${h2}">Before quoting this, gather</div>
-        <ul style="margin:6px 0;padding-left:20px">${H.blockers.map(x =>
-          li(`<b>${x.item}</b>${x.critical ? ' <span style="color:' + b.accent + ';font-size:11px;letter-spacing:.1em">CRITICAL</span>' : ''} — ${x.why}`)).join('')}</ul>` : ''}
-
-      ${H.nextSteps.length ? `
-        <ul style="margin:6px 0;padding-left:20px;color:${b.muted}">${H.nextSteps.map(li).join('')}</ul>` : ''}
+      ${H.effectiveRate ? `<p style="${p}">${effectiveRateLine(H.effectiveRate)}</p>` : ''}
 
       ${findings.length ? `
-        <div style="${h2}">Other things worth knowing</div>
-        <ul style="margin:6px 0;padding-left:20px">${findings.map((f: any) =>
+        <p style="${p}"><b>Worth knowing</b></p>
+        <ul style="margin:0 0 14px;padding-left:22px">${findings.map((f: any) =>
           li(`${f.finding} — ${f.implication}`)).join('')}</ul>` : ''}
 
-      ${problems}
+      <p style="${p}"><b>Next steps</b></p>
+      <ol style="margin:0 0 14px;padding-left:22px">${steps.map(li).join('')}</ol>
 
-      <p style="margin-top:26px;padding-top:16px;border-top:1px solid ${b.line}">
-        Full breakdown attached, and in ${b.driveFolder}. Mark it up and reply with it attached — I read the marks and log them.</p>`, brandKey),
+      ${review && spec._validation?.length
+        ? `<p style="${p};color:${GREY}">Check ${spec._validation.length}: ${spec._validation.join(' · ')}</p>` : ''}
+
+      <p style="${p};color:${GREY}">Full breakdown attached, and in Drive.</p>
+    </div>`,
   };
 }
 
