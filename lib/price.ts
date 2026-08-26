@@ -260,6 +260,21 @@ export function validate(spec: any) {
   }
 
   /**
+   * The failure this shape exists to prevent, stated as a check.
+   *
+   * On GVSW-2026-0004 every line came back empty under a range reading
+   * $1,820–$5,940, and the page printed NOT PRICED five times to a mason who was
+   * meant to quote from it. Nothing said so; it took reading the derivation to
+   * find that the numbers had been there all along. If the model ever drifts
+   * back to answering the old question, this says so on the review copy instead
+   * of leaving it to be discovered in the field.
+   */
+  const lines: any[] = spec.scope || [];
+  const empty = lines.filter((s2: any) => s2.low == null && s2.high == null);
+  if (lines.length && empty.length === lines.length)
+    problems.push(`every scope line is unpriced (${lines.length} of ${lines.length}) — the range carries figures the lines do not`);
+
+  /**
    * The range, summed here rather than by the model. Four rows, two columns, and
    * a null in the equipment row is a real state — "nobody has quoted this" — not
    * a zero. A column carrying a null totals what it can and says so; the old code
