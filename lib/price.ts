@@ -93,7 +93,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                         description:'how to charge for this job, and why',
                         properties:{
                           recommendation:{ type:'string', description:'≤ 12 words, a decision: "Day rate — repair with unknowns"' },
-                          why:{ type:'string', description:'one or two sentences, the reason it is that and not the other' } } },
+                          why:{ type:'string', description:'one or two sentences in plain words, naming the actual work. "Pricing per unit would undercharge since much of the labour is carrying materials up and down." Not "under-recover", not "protects both parties" — say what happens on the job.' } } },
 
           duration:   { type:'object', required:['low_days','high_days','drivers'],
                         properties:{
@@ -106,14 +106,20 @@ export async function price(extraction: any, answers: Record<string, string>, pr
            * only what actually blocks. An estimate with nine caveats is an
            * estimate nobody sends.
            */
-          blockers:   { type:'array', description:'what must be settled before committing to a price; empty if nothing does',
-                        items:{ type:'object', required:['item','why','resolves_by'],
+          blockers:   { type:'array', description:'what must be settled before committing to a price; empty if nothing does. One line each — this is a list he scans, not a section he reads.',
+                        items:{ type:'object', required:['item','why','critical'],
                           properties:{
                             item:{ type:'string', description:'≤ 10 words' },
                             why:{ type:'string', description:'what it moves — a number, a method, a liability. ≤ 20 words' },
-                            resolves_by:{ type:'string', description:'the concrete next action: one call, one measurement, one site visit' },
-                            ask:{ type:'array', items:{type:'string'}, description:'what to ask, ≤ 8 words each' },
-                            measure:{ type:'array', items:{type:'string'}, description:'what to measure first, ≤ 8 words each' } } } },
+                            critical:{ type:'boolean', description:'true when a wrong guess here is four figures or a liability, rather than a detail he can carry' } } } },
+
+          /**
+           * The errands, gathered across every blocker rather than repeated under
+           * each one. Two blockers settled by the same roof visit are one trip,
+           * and a list that says so is a list he can work from.
+           */
+          next_steps: { type:'array', items:{type:'string'},
+                        description:'the actions that clear the blockers, consolidated — one bullet per trip or call, naming everything to do while there. "One roof visit: measure roof-to-cap on all four sides, photograph crown and flashing." Not one bullet per blocker.' },
 
           /**
            * Two columns. Low is the bottom of every cited band, the fewer-days
@@ -175,6 +181,8 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                           properties:{ what:{type:'string'}, why_it_matters:{type:'string'} } } },
           tax_lines:  { type:'array', items:{type:'object', properties:{ line:{type:'string'},
                           cls:{type:'string'}, basis:{type:'string'} } } },
+
+          tax_action: { type:'string', description:'what Dan actually does about tax on this job, as an instruction — "Add sales tax to the whole invoice; every line here is a taxable repair." Not a classification he has to translate into an action.' },
         },
       },
     }],

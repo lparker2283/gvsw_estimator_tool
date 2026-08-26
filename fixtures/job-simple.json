@@ -1,7 +1,7 @@
 {
   "proposal_no": "GVSW-2026-0148",
   "date_issued": "2026-08-24",
-  "project_name": "Front steps \u2014 rebuild bluestone treads",
+  "project_name": "Front steps — rebuild bluestone treads",
   "onsite_days": 2,
   "cross_check": {
     "headline": "Unit price. Small job, ordinary access.",
@@ -53,7 +53,7 @@
     {
       "line": "Remove and salvage existing treads",
       "card": "stone.stone_unit_reset",
-      "range": "$120\u2013180/ea",
+      "range": "$120–180/ea",
       "qty": "3 ea",
       "low": 360,
       "high": 540,
@@ -63,7 +63,7 @@
     {
       "line": "Rebuild step core",
       "card": "stone.stone_unit_reset",
-      "range": "$58\u201378/sf",
+      "range": "$58–78/sf",
       "qty": "18 sf",
       "low": 1044,
       "high": 1404,
@@ -73,7 +73,7 @@
     {
       "line": "Reset treads",
       "card": "stone.stone_unit_reset",
-      "range": "$280\u2013360/ea",
+      "range": "$280–360/ea",
       "qty": "3 ea",
       "low": 840,
       "high": 1080,
@@ -83,7 +83,7 @@
     {
       "line": "Replace one cracked tread",
       "card": "stone.dutchman_repair",
-      "range": "$260\u2013400/ea",
+      "range": "$260–400/ea",
       "qty": "1 ea",
       "low": 260,
       "high": 400,
@@ -102,7 +102,7 @@
     },
     {
       "material": "Type N mortar",
-      "spec": "pre-1930 masonry \u2014 Portland will spall the face",
+      "spec": "pre-1930 masonry — Portland will spall the face",
       "qty": "4",
       "unit": "bags",
       "supplier": "Admar",
@@ -118,7 +118,7 @@
     "tax": 228.8,
     "total": 3088.8,
     "tax_classification": "taxable_repair",
-    "tax_note": "Repair, not complete replacement \u2014 taxable on the full billed amount."
+    "tax_note": "Repair, not complete replacement — taxable on the full billed amount."
   },
   "assumptions": [
     {
@@ -173,13 +173,15 @@
     {
       "objection": "Can you just re-point around the treads and leave them?",
       "response": "They have settled out of level, so pointing seals the gap without fixing why it opened. It reopens in a freeze-thaw cycle.",
-      "grounded_in": "Rate card \u2014 100+ freeze-thaw cycles a year, Monroe County"
+      "grounded_in": "Rate card — 100+ freeze-thaw cycles a year, Monroe County"
     },
     {
       "objection": "Why does one tread cost more than the others?",
       "response": "That one is cracked through and cannot be reset. It is a new piece of bluestone matched to the existing thickness, not labour.",
-      "grounded_in": "stone.dutchman_repair \u2014 $260-400/ea"
+      "grounded_in": "stone.dutchman_repair — $260-400/ea"
     }
   ],
-  "validity": "Holds 30 days. Bluestone pricing is the one that moves."
+  "validity": "Holds 30 days. Bluestone pricing is the one that moves.",
+  "next_steps": [],
+  "tax_action": "Add sales tax to the whole invoice — this is a repair, not a complete replacement."
 }

@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import type { Doc } from './docs';
 import { brandFor } from './brand';
-import { highlights, daySpan, dollars, effectiveRateLine, ROWS } from './highlights';
+import { highlights, daySpan, dollars, effectiveRateLine } from './highlights';
 
 // Built on first use: the SDK throws without a key, and Next imports this
 // module while collecting page data during the build, where no key exists.
@@ -49,13 +49,14 @@ export async function sendQuestionsEmail(
  * page he can mark up.
  *
  * Both matter and they are not redundant. The email is what he reads standing at
- * the truck — enough to know how to charge it and what is still open, without
- * opening anything. The PDF is what he marks up at the kitchen table, and the
- * marks are the training data. Rendering both from one structure is what stops
- * his pencil landing on a claim the email never made.
+ * the truck; the PDF is what he marks up at the kitchen table, and the marks are
+ * the training data. Rendering both from one structure is what stops his pencil
+ * landing on a claim the email never made.
  */
-export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: boolean; brand?: string }) {
-  const { subject, html } = deliveryEmail(o.spec, o.review, o.brand);
+export async function deliver(
+  o: { to: string; docs: Doc[]; spec: any; extraction?: any; review: boolean; brand?: string },
+) {
+  const { subject, html } = deliveryEmail(o.spec, o.extraction, o.review, o.brand);
   await resend().emails.send({
     from: FROM, to: o.to, subject, html,
     attachments: o.docs.map(d => ({ filename: d.filename, content: d.pdf.toString('base64') })),
@@ -68,80 +69,93 @@ export async function deliver(o: { to: string; docs: Doc[]; spec: any; review: b
  * Split out so the email can be rendered and looked at without a live job, an
  * API key, or a memo — the same reason the documents have a smoke test. An email
  * nobody can preview is an email whose first reader is Dan.
+ *
+ * It used to be the document again, in HTML: every section, a four-row range
+ * table, the rate-card key under each objection. Two renderings of the same
+ * page, one of which he could not mark up. So the email says the thing out loud
+ * instead — how he would charge it, the two ends of the range, what is missing
+ * from the number, how long, what to gather before quoting, and what else is
+ * worth knowing. The breakdown is attached, and that is where detail belongs.
  */
-export function deliveryEmail(spec: any, review = false, brandKey?: string): { subject: string; html: string } {
+export function deliveryEmail(
+  spec: any, extraction?: any, review = false, brandKey?: string,
+): { subject: string; html: string } {
   const b = brandFor(brandKey);
   const H = highlights(spec);
-  const o = { spec, review, brand: brandKey };
-  const problems = o.spec._validation?.length
-    ? `<p style="color:#8a3b2a"><b>Check ${o.spec._validation.length}:</b><br>${o.spec._validation.join('<br>')}</p>` : '';
 
-  const h2 = `font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${b.muted};font-weight:700;margin:26px 0 6px`;
-  const lead = `font-size:17px;font-weight:700;color:${b.inkStrong};margin:0 0 6px`;
-  const li = (s: string) => `<li style="margin-bottom:4px">${s}</li>`;
+  const findings: any[] = (extraction?.findings || []).filter((f: any) => f.severity !== 'low');
 
-  const rangeRows = ROWS.map(({ key, label }) => `
-    <tr>
-      <td style="padding:6px 0;color:${b.ink}">${label}</td>
-      <td style="padding:6px 0 6px 18px;text-align:right;white-space:nowrap">${dollars(H.range!.low[key] as any)}</td>
-      <td style="padding:6px 0 6px 18px;text-align:right;white-space:nowrap">${dollars(H.range!.high[key] as any)}</td>
-    </tr>`).join('');
+  // Validation is the tool doubting its own arithmetic. It belongs to whoever is
+  // reviewing, not to the mason, and it is off the document entirely now.
+  const problems = review && spec._validation?.length
+    ? `<p style="color:#8a3b2a;font-size:14px"><b>Check ${spec._validation.length}:</b><br>${spec._validation.join('<br>')}</p>` : '';
+
+  const h2 = `font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${b.muted};font-weight:700;margin:24px 0 6px`;
+  const li = (t: string) => `<li style="margin-bottom:5px">${t}</li>`;
+
+  /**
+   * The opening, assembled rather than written, because every figure in it is one
+   * this job produced: how to charge, the two ends, what is not in either end
+   * yet, and how long. A range that silently omits the unquoted line is the same
+   * failure as a total that does.
+   *
+   * The recommendation is quoted whole and never bent into the sentence around
+   * it. It is written as a decision in its own words — "Day rate. Not per square
+   * foot." — and lowercasing that to splice it after "I would price this" gave
+   * "price this day rate. not per square foot", which is neither his sentence nor
+   * a grammatical one. So it stands on its own line, as it was written.
+   */
+  const money2 = (n: any) => dollars(n ?? null);
+  const both = H.range && H.range.low.total != null && H.range.high.total != null;
+  const partial = !!(H.range && (H.range.low.partial || H.range.high.partial));
+
+  const figures = [
+    both ? `Charging anywhere from <b>${money2(H.range!.low.total)}</b> to <b>${money2(H.range!.high.total)}</b>` : '',
+    partial ? ', <b>plus what is still unpriced</b>' : '',
+    H.duration ? `${both ? ', and booking' : 'Booking'} <b>${daySpan(H.duration)}</b> on site` : '',
+  ].filter(Boolean).join('');
 
   return {
     // The proposal number is in the subject on purpose: it is how a reply
     // carrying the marked-up page finds its way back to the right job.
-    subject: o.review
+    subject: review
       ? `[REVIEW] ${H.proposalNo} — ready for Dan`
       : `${H.proposalNo} — ${H.projectName}`,
     html: wrap(`
-      ${o.review ? '<p style="color:#8a3b2a"><b>Review copy.</b> Nothing has gone to Dan.</p>' : ''}
+      ${review ? '<p style="color:#8a3b2a"><b>Review copy.</b> Nothing has gone to Dan.</p>' : ''}
 
-      ${H.model ? `
-        <div style="${h2}">How to charge it</div>
-        <p style="${lead}">${H.model.recommendation}</p>
-        <p style="margin:0">${H.model.why}</p>` : ''}
+      <p style="margin:0 0 10px;font-size:17px;line-height:1.55">Based on your memo and your
+        answers to my questions, here is how I would price it.</p>
 
-      ${H.duration ? `
-        <div style="${h2}">How long</div>
-        <p style="${lead}">${daySpan(H.duration)} on site.</p>
-        ${H.duration.drivers?.length ? `<ul style="margin:6px 0;padding-left:20px">${H.duration.drivers.map(li).join('')}</ul>` : ''}` : ''}
+      ${H.model ? `<p style="font-size:19px;font-weight:700;color:${b.inkStrong};margin:0 0 8px">${H.model.recommendation}</p>` : ''}
+
+      ${figures ? `<p style="margin:0 0 12px;font-size:17px;line-height:1.55">${figures}.</p>` : ''}
+
+      ${H.model?.why ? `<p style="margin:0 0 12px">${H.model.why}</p>` : ''}
+
+      ${partial && H.range?.equipment_note
+        ? `<p style="margin:0 0 12px;color:${b.muted}">${H.range.equipment_note}</p>` : ''}
+
+      ${H.effectiveRate ? `<p style="margin:16px 0;padding:12px 14px;background:${b.accentSoft};
+          border-left:3px solid ${b.accent};font-weight:700">${effectiveRateLine(H.effectiveRate)}</p>` : ''}
 
       ${H.blockers.length ? `
-        <div style="${h2}">Before you commit to a number</div>
-        ${H.blockers.map(x => `
-          <p style="margin:0 0 4px"><b>${x.item}</b> — ${x.why}</p>
-          <p style="margin:0 0 14px;color:${b.muted}">${x.resolves_by}</p>`).join('')}` : ''}
+        <div style="${h2}">Before quoting this, gather</div>
+        <ul style="margin:6px 0;padding-left:20px">${H.blockers.map(x =>
+          li(`<b>${x.item}</b>${x.critical ? ' <span style="color:' + b.accent + ';font-size:11px;letter-spacing:.1em">CRITICAL</span>' : ''} — ${x.why}`)).join('')}</ul>` : ''}
 
-      ${H.range ? `
-        <div style="${h2}">The range</div>
-        <table style="width:100%;border-collapse:collapse;font-size:15px">
-          <tr><td></td>
-            <td style="padding:0 0 4px 18px;text-align:right;font-size:11px;letter-spacing:.12em;color:${b.muted}">LOW</td>
-            <td style="padding:0 0 4px 18px;text-align:right;font-size:11px;letter-spacing:.12em;color:${b.muted}">HIGH</td></tr>
-          ${rangeRows}
-          <tr><td style="padding:10px 0 0;border-top:1.5px solid ${b.line};font-weight:700">${H.range.low.partial || H.range.high.partial ? 'So far' : 'Range'}</td>
-            <td style="padding:10px 0 0 18px;border-top:1.5px solid ${b.line};text-align:right;font-weight:700;font-size:19px">${dollars(H.range.low.total ?? null)}</td>
-            <td style="padding:10px 0 0 18px;border-top:1.5px solid ${b.line};text-align:right;font-weight:700;font-size:19px">${dollars(H.range.high.total ?? null)}</td></tr>
-        </table>
-        ${H.range.equipment_note ? `<p style="font-size:13px;color:${b.muted};margin:8px 0 0">${H.range.equipment_note}</p>` : ''}
-        ${H.effectiveRate ? `<p style="margin:16px 0 0;padding:12px 14px;background:${b.accentSoft};
-            border-left:3px solid ${b.accent};font-weight:700">${effectiveRateLine(H.effectiveRate)}</p>` : ''}
-        ${H.range.swing?.length ? `
-          <div style="${h2}">What moves it</div>
-          <ul style="margin:6px 0;padding-left:20px">${H.range.swing.map(li).join('')}</ul>` : ''}` : ''}
+      ${H.nextSteps.length ? `
+        <ul style="margin:6px 0;padding-left:20px;color:${b.muted}">${H.nextSteps.map(li).join('')}</ul>` : ''}
 
-      ${H.explanation || H.objections.length ? `
-        <div style="${h2}">When they push back</div>
-        ${H.explanation ? `<p style="margin:0 0 14px">${H.explanation}</p>` : ''}
-        ${H.objections.map(x => `
-          <p style="margin:0 0 3px"><b>“${x.objection}”</b></p>
-          <p style="margin:0 0 4px">${x.response}</p>
-          <p style="margin:0 0 14px;font-size:12px;color:${b.muted}">${x.grounded_in}</p>`).join('')}` : ''}
+      ${findings.length ? `
+        <div style="${h2}">Other things worth knowing</div>
+        <ul style="margin:6px 0;padding-left:20px">${findings.map((f: any) =>
+          li(`${f.finding} — ${f.implication}`)).join('')}</ul>` : ''}
 
       ${problems}
 
       <p style="margin-top:26px;padding-top:16px;border-top:1px solid ${b.line}">
-        Full page attached, and in ${b.driveFolder}. Mark it up and reply with it attached — I read the marks and log them.</p>`, o.brand),
+        Full breakdown attached, and in ${b.driveFolder}. Mark it up and reply with it attached — I read the marks and log them.</p>`, brandKey),
   };
 }
 

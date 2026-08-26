@@ -30,13 +30,15 @@ export type Highlights = {
 
   model: { recommendation: string; why: string } | null;
   duration: { low_days: number; high_days: number; drivers: string[] } | null;
-  blockers: { item: string; why: string; resolves_by: string; ask?: string[]; measure?: string[] }[];
+  blockers: { item: string; why: string; critical?: boolean }[];
+  nextSteps: string[];
   range: { low: Column; high: Column; swing: string[]; equipment_note?: string } | null;
   effectiveRate: { labor: number; days: number; per_hour: number } | null;
   explanation: string;
   scopeSentence: string;
   objections: { objection: string; response: string; grounded_in: string }[];
   validity: string;
+  taxAction: string;
 };
 
 export function highlights(spec: any): Highlights {
@@ -48,12 +50,14 @@ export function highlights(spec: any): Highlights {
     model: spec.model?.recommendation ? spec.model : null,
     duration: spec.duration?.low_days != null ? spec.duration : null,
     blockers: spec.blockers || [],
+    nextSteps: spec.next_steps || [],
     range: spec.range?.low ? spec.range : null,
     effectiveRate: spec.effective_rate || null,
     explanation: spec.explanation || '',
     scopeSentence: spec.scope_sentence || '',
     objections: spec.objections || [],
     validity: spec.validity || '',
+    taxAction: spec.tax_action || '',
   };
 }
 

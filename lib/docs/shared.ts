@@ -61,6 +61,15 @@ export const CSS = `
            font-weight: 700; margin: 16px 0 4px; }
   .first { font-weight: 700; color: #1a1a19; }
 
+  /* A blocker where a wrong guess is four figures, not a detail he can carry. */
+  .crit { font-size: 8pt; letter-spacing: .12em; text-transform: uppercase; color: ${B.accent};
+          font-weight: 700; white-space: nowrap; }
+
+  /* The plain-words summary of the job, marked as a quotation so it reads as
+     something he could say out loud rather than as another finding. */
+  .summary { font-style: italic; color: #3d3a35; padding-left: 12px;
+             border-left: 2px solid #ddd8ce; margin: 4px 0 14px; }
+
   /* The two columns. The figure is the point, so it is set larger than the prose
      around it and the totals row larger again. */
   table.range td.r { font-size: 11pt; }
