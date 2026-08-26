@@ -5,9 +5,15 @@ import { highlights, daySpan, dollars, effectiveRateLine, ROWS, type Highlights 
  * The document. Singular, internal, and not a proposal.
  *
  * Dan writes the proposal himself, later, and better. This exists to get him
- * from a voice memo to being able to quote with a straight face — the business
- * model, how long, what is blocking a confident number, a range with its four
- * rows, and what to say when the client pushes back.
+ * from a voice memo to being able to quote with a straight face — the pricing
+ * recommendation, how long it runs, what is blocking a firm quote and the steps
+ * that clear it, a range with its four rows, and the justification he needs
+ * when a client pushes back.
+ *
+ * The section names are his, from a markup pass on a real brief. "How to charge
+ * it" became "Pricing recommendation" and "When they push back" became "Pricing
+ * justification", because he is not reading this to be told what to say — he is
+ * reading it to remember why the number is the number.
  *
  * There were four documents once: a field brief, an equipment call sheet, a
  * client proposal and a covering note. Three were written against one job — a
@@ -21,19 +27,17 @@ import { highlights, daySpan, dollars, effectiveRateLine, ROWS, type Highlights 
 export function brief(spec: any, extraction: any) {
   const H = highlights(spec);
   const findings: any[] = (extraction?.findings || []).filter((f: any) => f.severity !== 'low');
-  const flags: string[] = spec._validation || [];
   const scope: any[] = spec.scope || [];
 
   const present = [
-    H.model && 'How to charge it',
-    H.duration && 'How long',
-    H.blockers.length && 'What is blocking a firm number',
+    H.model && 'Pricing recommendation',
+    H.duration && 'Estimated job length',
+    (H.blockers.length || H.nextSteps.length) && 'Factors blocking a firm quote',
     H.range && 'The range',
-    (H.objections.length || H.explanation) && 'When they push back',
-    scope.length && 'The lines',
+    (H.objections.length || H.explanation) && 'Pricing justification',
+    scope.length && 'Project scope & line cost basis',
     findings.length && 'Worth knowing',
-    flags.length && 'Check these',
-    'Corrections',
+    'How to correct this doc',
   ].filter(Boolean) as string[];
 
   const sec = (t: string) =>
@@ -53,48 +57,46 @@ export function brief(spec: any, extraction: any) {
     <div class="rule"></div>
     <p class="sub">${esc(H.proposalNo)}${H.dateIssued ? ` · ${esc(H.dateIssued)}` : ''} · from your memo · not a proposal</p>
 
-    ${has('How to charge it') ? `
-      ${sec('How to charge it')}
+    ${has('Pricing recommendation') ? `
+      ${sec('Pricing recommendation')}
       <p class="lead">${esc(H.model!.recommendation)}</p>
       <p>${esc(H.model!.why)}</p>` : ''}
 
-    ${has('How long') ? `
-      ${sec('How long')}
-      <p class="lead">${esc(daySpan(H.duration))} on site.</p>
+    ${has('Estimated job length') ? `
+      ${sec('Estimated job length')}
+      <p class="lead">${esc(daySpan(H.duration))} on site${H.duration!.drivers?.length ? ' depending on:' : '.'}</p>
       ${H.duration!.drivers?.length
-        ? `<div class="minor">What decides where it lands</div>
-           <ul>${H.duration!.drivers.map(d => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}` : ''}
+        ? `<ul>${H.duration!.drivers.map(d => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}` : ''}
 
-    ${has('What is blocking a firm number') ? `
-      ${sec('What is blocking a firm number')}
-      ${H.blockers.map(b => `
-        <p class="lead">${esc(b.item)}</p>
-        <p>${esc(b.why)}</p>
-        <p class="first">${esc(b.resolves_by)}</p>
-        ${(b.ask || []).length ? `<div class="minor">Ask</div><ul>${b.ask!.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
-        ${(b.measure || []).length ? `<div class="minor">Measure first</div><ul>${b.measure!.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
-      `).join('')}` : ''}
+    ${has('Factors blocking a firm quote') ? `
+      ${sec('Factors blocking a firm quote')}
+      ${H.blockers.length ? `<ul>${H.blockers.map(b => `
+        <li><b>${esc(b.item)}.</b> ${esc(b.why)}${b.critical ? ' <span class="crit">Critical</span>' : ''}</li>`).join('')}</ul>` : ''}
+      ${H.nextSteps.length ? `
+        <div class="minor">Next steps for a firm quote</div>
+        <ul>${H.nextSteps.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}` : ''}
 
     ${has('The range') ? `
       ${sec('The range')}
       ${rangeTable(H)}
       ${H.range!.equipment_note ? `<p class="note">${esc(H.range!.equipment_note)}</p>` : ''}
       ${H.effectiveRate ? `<p class="rate">${esc(effectiveRateLine(H.effectiveRate))}</p>` : ''}
-      ${H.range!.swing?.length ? `
-        <div class="minor">What moves it from one end to the other</div>
-        <ul>${H.range!.swing.map(s => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
-      ${H.validity ? `<p class="note">${esc(H.validity)}</p>` : ''}` : ''}
+      ${(H.range!.swing?.length || H.validity) ? `
+        <div class="minor">Charging on the low end vs high end depends on:</div>
+        <ul>
+          ${(H.range!.swing || []).map(s => `<li>${esc(s)}</li>`).join('')}
+          ${sentences(H.validity).map(n => `<li class="muted">Note: ${esc(n)}</li>`).join('')}
+        </ul>` : ''}` : ''}
 
-    ${has('When they push back') ? `
-      ${sec('When they push back')}
-      ${H.explanation ? `<p>${esc(H.explanation)}</p>` : ''}
+    ${has('Pricing justification') ? `
+      ${sec('Pricing justification')}
+      ${H.explanation ? `<p class="summary">“${esc(H.explanation)}”</p>` : ''}
       ${H.objections.map(o => `
         <p class="lead">“${esc(o.objection)}”</p>
-        <p>${esc(o.response)}</p>
-        <p class="note">${esc(o.grounded_in)}</p>`).join('')}` : ''}
+        <p>${esc(o.response)}</p>`).join('')}` : ''}
 
-    ${has('The lines') ? `
-      ${sec('The lines')}
+    ${has('Project scope & line cost basis') ? `
+      ${sec('Project scope & line cost basis')}
       <table><thead><tr><th style="width:26px">#</th><th>Line</th>
         <th style="text-align:right;width:88px">Cost</th><th style="width:30%">Basis</th></tr></thead><tbody>
         ${scope.map((s: any, i: number) => `
@@ -106,8 +108,10 @@ export function brief(spec: any, extraction: any) {
           </tr>`).join('')}
       </tbody></table>
       ${scope.some((s: any) => s.contingent) ? '<p class="note">* Contingent — in the high column, out of the low.</p>' : ''}
-      ${(spec.tax_lines || []).length
-        ? `<p class="note">Tax: ${(spec.tax_lines || []).map((t: any) => `${esc(t.line)} — ${esc(t.cls)}`).join('; ')}.</p>` : ''}
+      ${H.taxAction
+        ? `<p class="first">${esc(H.taxAction)}</p>`
+        : ((spec.tax_lines || []).length
+            ? `<p class="note">Tax: ${(spec.tax_lines || []).map((t: any) => `${esc(t.line)} — ${esc(t.cls)}`).join('; ')}.</p>` : '')}
       ${(spec.materials || []).length ? `
         <div class="minor">Materials to order</div>
         <table><tbody>${(spec.materials || []).map((m: any) => `<tr>
@@ -115,7 +119,7 @@ export function brief(spec: any, extraction: any) {
           <td>${esc(m.qty || '')} ${esc(m.unit || '')}</td>
           <td>${esc(m.supplier || 'supplier TBD')}</td></tr>`).join('')}</tbody></table>` : ''}
       ${(spec.assumptions || []).length ? `
-        <div class="minor">Where I guessed</div>
+        <div class="minor">Assumptions — check these closely</div>
         <table><tbody>${(spec.assumptions || []).map((a: any) =>
           `<tr><td class="k">${esc(a.what)}</td><td>${esc(a.why_it_matters)}</td></tr>`).join('')}</tbody></table>` : ''}` : ''}
 
@@ -125,11 +129,7 @@ export function brief(spec: any, extraction: any) {
         `<tr><td class="k">${esc(f.finding)}</td><td>${esc(f.implication)}</td></tr>`).join('')}</tbody></table>
       <p class="note">Your call, not mine.</p>` : ''}
 
-    ${has('Check these') ? `
-      ${sec('Check these')}
-      <ul>${flags.map(f => `<li class="warn">${esc(f)}</li>`).join('')}</ul>` : ''}
-
-    ${sec('Corrections')}
+    ${sec('How to correct this doc')}
     <p class="note">Circle a line number and write the right figure. Quantity means I misheard you;
     rate means the card is drifting; a line added or crossed out means I mis-scoped it.
     Mark it up, email this page back, and I will log it.</p>
@@ -137,6 +137,15 @@ export function brief(spec: any, extraction: any) {
 
     <footer>${esc(CO.name)} · ${esc(CO.footer)}<br><em>${esc(CO.tagline)}</em></footer>
   `);
+}
+
+/**
+ * `validity` arrives as prose — how long the range holds, and what would move
+ * it. It reads as two notes at the end of the list that decides low versus
+ * high, rather than as a paragraph after it, so split it where it was written.
+ */
+function sentences(text: string): string[] {
+  return String(text || '').split(/(?<=\.)\s+/).map(t => t.trim()).filter(Boolean);
 }
 
 /** Two columns, four rows. A dash is a real state and is never a zero. */

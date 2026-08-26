@@ -9,15 +9,16 @@ const { deliveryEmail } = await import('../lib/mail.ts');
 const { validate } = await import('../lib/price.ts');
 
 const cases = [
-  ['chimney', './fixtures/job.json'],
-  ['steps', './fixtures/job-simple.json'],
+  ['chimney', './fixtures/job.json', './fixtures/extraction.json'],
+  ['steps', './fixtures/job-simple.json', './fixtures/extraction-simple.json'],
 ];
 
 fs.mkdirSync('./out', { recursive: true });
 
-for (const [label, specPath] of cases) {
+for (const [label, specPath, exPath] of cases) {
   const spec = validate(JSON.parse(fs.readFileSync(specPath, 'utf8')));
-  const { subject, html } = deliveryEmail(spec);
+  const ex = JSON.parse(fs.readFileSync(exPath, 'utf8'));
+  const { subject, html } = deliveryEmail(spec, ex);
   // A phone, held at the truck. That is the only viewport this has to survive.
   fs.writeFileSync(`./out/email-${label}.html`,
     `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">` +

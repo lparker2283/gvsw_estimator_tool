@@ -76,6 +76,8 @@ export async function POST(req: NextRequest) {
       to: humanInLoop ? process.env.CC_EMAIL! : (job.from_email || process.env.DAN_EMAIL!),
       docs,
       spec,
+      // "Worth knowing" is in the email now, and it lives on the extraction.
+      extraction: job.extraction,
       review: humanInLoop,
     });
 
