@@ -4,7 +4,7 @@
   "scope": [
     {
       "task": "Access — tracked (spider) lift",
-      "description": "Compact tracked lift, narrow-chassis class, sized to reach the upper section. Rental, delivery, and site setup. NOT YET QUOTED — see note below",
+      "description": "Narrow-chassis tracked lift. Rental, delivery and siting — not yet quoted.",
       "unit": "Rental",
       "contingent": true,
       "contingency_note": "quotation pending",
@@ -13,7 +13,7 @@
     },
     {
       "task": "Site protection — flagstone path",
-      "description": "Track matting and equivalent protection across the landscaped approach for the duration of access. Allowance — $150 material, balance labour to lay and lift",
+      "description": "Track matting over the landscaped approach for the duration of access.",
       "unit": "Allowance",
       "contingent": false,
       "low": 200,
@@ -21,7 +21,7 @@
     },
     {
       "task": "Repoint — upper section",
-      "description": "Rake and repoint failed mortar joints, top section. Type N or NHL lime mortar per historic specification",
+      "description": "Rake and repoint failed joints, top section. Type N or NHL lime.",
       "unit": "Allowance — area confirmed on site",
       "contingent": true,
       "contingency_note": "priced on assumed face area, measured at setup",
@@ -30,7 +30,7 @@
     },
     {
       "task": "Stone unit reset — allowance",
-      "description": "Lift, re-bed and repoint shifted stones. Count not established from ground observation — allowance for three units",
+      "description": "Lift, re-bed and repoint shifted stones. Allowance for three units.",
       "unit": "3 each (allowance)",
       "contingent": true,
       "contingency_note": "count confirmed once at height; billed as performed",
@@ -39,46 +39,12 @@
     },
     {
       "task": "Top inspection and seal",
-      "description": "Cap reported intact from ground. Verify condition at height, seal top and upper joints against water entry. Chimney is out of service — water shedding is the only remaining function",
+      "description": "Verify cap condition at height and seal the top against water entry.",
       "unit": "Allowance",
       "contingent": true,
       "contingency_note": "reduced from closure scope — cap confirmed present; revisits only if the cap proves failed at height",
       "low": 280,
       "high": 750
-    }
-  ],
-  "materials": [
-    {
-      "material": "NHL lime mortar",
-      "spec": "Historic specification — ASSUMED pre-1930; grade and build date to be confirmed",
-      "supplier": "TBD",
-      "qty": "3",
-      "unit": "55 lb bag",
-      "cost": 130
-    },
-    {
-      "material": "Matching stone",
-      "spec": "Salvage first; source to match if units are unsalvageable",
-      "supplier": "TBD",
-      "qty": "Allowance",
-      "unit": "—",
-      "cost": 200
-    },
-    {
-      "material": "Penetrating sealer",
-      "spec": "Silane/siloxane — top closure",
-      "supplier": "TBD",
-      "qty": "1",
-      "unit": "partial 5 gal",
-      "cost": 110
-    },
-    {
-      "material": "Track matting",
-      "spec": "Path protection over flagstone",
-      "supplier": "TBD",
-      "qty": "1",
-      "unit": "set",
-      "cost": 150
     }
   ],
   "totals": {
@@ -93,47 +59,6 @@
     "subtotal_ex_access": 2440,
     "check": "1850 labour + 590 materials = 2440 scope subtotal, access excluded"
   },
-  "cross_check": {
-    "why": "The rate card prices masonry per unit — per square foot, per linear foot, per stone. Those bands assume normal access and a mason working with a tender. This job has a small quantity of work and a large quantity of getting to it. So the two legitimate ways to price it disagree, and the tool surfaces the disagreement rather than silently picking the one it likes.",
-    "method_a": {
-      "name": "Unit price, off the rate card",
-      "value": 2440,
-      "note": "Every line derived in Section 6. All-in per the card's Total Est. convention."
-    },
-    "method_b": {
-      "name": "Day rate, off the card's quick reference",
-      "low": 4190,
-      "high": 5870,
-      "note": "6 on-site days — the same 6 the lift is modelled at in Section 7b — at the card's mason rate of $75–110/hr over 8-hour days, plus $590 materials. Solo working, so no tender rate applies. Siting and strike days are Dan's time too."
-    },
-    "gap": "Unit pricing lands at $2,440. Day-rate pricing lands at $4,190–$5,870. The unit method is LOW by roughly $1,750–$3,430 — it does not merely differ from the day-rate method, it is under half of it at the top of the band.",
-    "reading": "This is not a rounding difference, it is the rate card telling on itself. Per-unit rates price PRODUCTION. On this job Dan is not mostly producing — he is positioning a machine, climbing, carrying stone one piece at a time, and repositioning. A small quantity in an awkward place costs day-rate money regardless of how few square feet it is.",
-    "recommendation": "Price this job on days, not units, and use the unit figure only as a floor. The rate card's own minimum-job clause ($350–600) exists for the same reason — it acknowledges that below a certain size, quantity stops predicting cost. This job is that case at a larger scale.",
-    "instruction": "Dan's call. The tool will not silently switch methods — it shows both and says which it would use.",
-    "headline": "Day rate. Not per square foot."
-  },
-  "tax_lines": [
-    {
-      "line": "Whole project",
-      "cls": "Taxable repair",
-      "basis": "Dan stated explicitly: 'It is a repair job. It's not a new build.' NYS Publication 862 classifies repair and partial replacement of masonry as taxable; new installation and COMPLETE replacement are capital improvements. No line here reaches complete replacement."
-    },
-    {
-      "line": "Equipment rental billed to client",
-      "cls": "Taxable",
-      "basis": "Follows the character of the work it serves."
-    },
-    {
-      "line": "Form ST-124",
-      "cls": "Does not apply",
-      "basis": "Capital improvement certificates apply only to exempt work. Requesting one here would be wrong and would look like Dan does not know his own tax position."
-    },
-    {
-      "line": "Removal alternative (if pursued)",
-      "cls": "Review",
-      "basis": "Demolition to the roofline with the opening closed is arguably neither repair nor improvement. Genuinely unsettled — accountant question, flagged rather than answered."
-    }
-  ],
   "derivation": [
     {
       "line": "Access — tracked (spider) lift",
@@ -187,17 +112,6 @@
     }
   ],
   "project_name": "Stone chimney — upper section crack repair",
-  "onsite_days": 6,
-  "assumptions": [
-    {
-      "what": "Under 10 linear feet of cracked joint",
-      "why_it_matters": "Drives the repointing line directly; a site measure could double it."
-    },
-    {
-      "what": "Six on-site days",
-      "why_it_matters": "The lift bills by the day, so this is the biggest lever on the total."
-    }
-  ],
   "_validation": [],
   "model": {
     "recommendation": "Day rate. Not per square foot.",
@@ -205,20 +119,8 @@
   },
   "duration": {
     "low_days": 6,
-    "high_days": 9,
-    "drivers": [
-      "Whether the lift sites in one go",
-      "How much of the upper joint is failed",
-      "Weather in the week you book it"
-    ]
+    "high_days": 9
   },
-  "blockers": [
-    {
-      "item": "Access equipment not quoted",
-      "why": "Largest single cost in the job and it bills by the day.",
-      "critical": true
-    }
-  ],
   "range": {
     "low": {
       "labor": 4180,
@@ -234,14 +136,8 @@
       "conditions": 2195,
       "conditions_basis": "difficult_access at 25%"
     },
-    "equipment_note": "Access equipment is not in either column. Nobody has quoted it, and a rental figure invented here is one you would have to honour.",
-    "swing": [
-      "Six days versus nine",
-      "Whether you rent a lift or scaffold it",
-      "How much upper joint is actually failed"
-    ]
+    "equipment_note": "Access equipment is not in either column. Nobody has quoted it, and a rental figure invented here is one you would have to honour."
   },
-  "explanation": "The chimney is out of service, so this is stabilisation, not restoration — the cost is in reaching the work, not in the work.",
   "scope_sentence": "Rake and repoint the failed joints in the upper section of the stone chimney, reset shifted units, and seal the top against water entry. Chimney remains out of service.",
   "objections": [
     {
@@ -265,5 +161,25 @@
     "One site visit: measure path width at its narrowest, path length from the truck, height to the work, and ground condition.",
     "One call to a rental yard with those numbers: weekly rate before day rate, stowed chassis width, platform capacity with a material rack, delivery and pickup quoted separately, and whether the damage waiver covers the property."
   ],
-  "tax_action": "Add sales tax to the whole invoice — every line here is a taxable repair, including the lift when it is billed on."
+  "tax_action": "Add sales tax to the whole invoice — every line here is a taxable repair, including the lift when it is billed on.",
+  "open_questions": [
+    {
+      "question": "Access equipment not quoted",
+      "assumed": "A tracked lift will fit the flagstone path",
+      "swing": "$400–1,200 depending on weekly vs day rate",
+      "critical": true
+    },
+    {
+      "question": "Linear feet of cracked joint",
+      "assumed": "Under 10 linear feet, upper section only",
+      "swing": "A site measure could double the repoint line",
+      "critical": false
+    },
+    {
+      "question": "How many days on site",
+      "assumed": "Six days, one siting, three masonry, one seal, one strike",
+      "swing": "Six days versus nine — the lift bills by the day",
+      "critical": true
+    }
+  ]
 }
