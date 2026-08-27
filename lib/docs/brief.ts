@@ -32,10 +32,10 @@ export function brief(spec: any, _extraction: any) {
   const scope: any[] = spec.scope || [];
 
   const present = [
-    'The number',
+    'Recommended range',
     H.openQuestions.length && "What's still open",
     H.nextSteps.length && 'Next steps',
-    scope.length && 'The work',
+    scope.length && 'Scope of work',
     H.objections.length && 'If they push back',
   ].filter(Boolean) as string[];
 
@@ -49,7 +49,7 @@ export function brief(spec: any, _extraction: any) {
     <div class="rule"></div>
     <p class="sub">${esc(H.proposalNo)}${H.dateIssued ? ` · ${esc(H.dateIssued)}` : ''} · from your memo · not a proposal</p>
 
-    ${sec('The number')}
+    ${sec('Recommended range')}
     <p class="lead">${esc(H.model?.recommendation || 'See the range below.')}${
       H.duration ? ` · ${esc(daySpan(H.duration))} on site` : ''}</p>
     ${H.model?.why ? `<p>${esc(H.model.why)}</p>` : ''}
@@ -57,7 +57,6 @@ export function brief(spec: any, _extraction: any) {
     ${H.range?.equipment_note ? `<p class="note">${esc(H.range.equipment_note)}</p>` : ''}
     ${H.effectiveRate ? `<p class="rate">${esc(effectiveRateLine(H.effectiveRate))}</p>` : ''}
     ${H.validity ? `<p class="note">${esc(H.validity)}</p>` : ''}
-    ${scope.length ? `<p class="note">The range above is the number. The work it pays for is listed further down — that list is the scope, not a second quote.</p>` : ''}
 
     ${has("What's still open") ? `
       ${sec("What's still open")}
@@ -76,8 +75,8 @@ export function brief(spec: any, _extraction: any) {
       ${sec('Next steps')}
       <ol>${H.nextSteps.map(n => `<li>${esc(n)}</li>`).join('')}</ol>` : ''}
 
-    ${has('The work') ? `
-      ${sec('The work')}
+    ${has('Scope of work') ? `
+      ${sec('Scope of work')}
       <table><tbody>
         ${scope.map((s: any, i: number) => {
           /**
