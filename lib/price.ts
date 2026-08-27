@@ -33,20 +33,15 @@ RULES
    LOW:  bottom of every cited band · fewer-days assumption · contingent lines EXCLUDED · adjustment factors at their low percentage
    HIGH: top of every cited band · more-days assumption · contingent lines INCLUDED · adjustment factors at their high percentage
 
-   \`swing\` names the two or three assumptions that actually differ between the columns. He must be able to narrow the range by answering a question. "Depends on conditions" is not a swing factor; "whether the risers are sound" is.
+   What differs between the columns belongs in \`open_questions\`, one row per unknown, never restated elsewhere. He must be able to narrow the range by answering a question: "depends on conditions" is not a question, "whether the risers are sound" is.
 
 3b. The conditions row uses the card's OWN named adjustment_factors — difficult access, scaffolding above 12 ft, historic district, winter work — and says which, at what percent. Never a percentage of your own devising. Where none applies the row is null, not zero with an excuse.
 
 3c. Do NOT add an overhead or profit percentage. The card carries no such figure. Inventing one either double-charges the client or guesses at his books.
 
-4. Compute BOTH pricing methods and report the gap:
-   - unit price, off the card's per-unit bands
-   - day rate, using the card's mason hourly rate over the on-site day count
-   Where the job is small in quantity but long in access, the unit method under-prices badly. Say so.
+5. Any quantity you assumed rather than received is an \`open_questions\` row: the question is what you could not answer, \`assumed\` is the figure you used anyway, and \`swing\` is what the real answer moves. Do not also list it as a duration driver, a range note or a finding — one unknown, one row. Six unknowns printed three ways is how this page got to four pages.
 
-5. Any quantity you assumed rather than received goes in \`assumptions\` with what it drives. The assumption list is a deliverable.
-
-6. Classify tax per line: repair/partial replacement is taxable; new installation/complete replacement is a capital improvement.
+6. Tax: repair and partial replacement are taxable; new installation and complete replacement are capital improvements. Say what he does about it in one sentence in \`tax_action\` and nowhere else.
 
 7. Rate card bands are all-in (labour + material) per its "Total Est." convention. Do not double count.
 
@@ -80,8 +75,8 @@ export async function price(extraction: any, answers: Record<string, string>, pr
       description: 'A fully derived job spec.',
       input_schema: {
         type: 'object',
-        required: ['project_name','model','duration','blockers','range','explanation','objections',
-                   'scope','derivation','materials','totals','cross_check','assumptions','tax_lines'],
+        required: ['project_name','model','duration','open_questions','next_steps','range',
+                   'objections','scope','derivation','totals','tax_action'],
         properties: {
           project_name:{ type:'string', description:'the job in at most eight words, as Dan would say it aloud' },
 
@@ -97,23 +92,36 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                           recommendation:{ type:'string', description:'≤ 12 words, a decision: "Day rate — repair with unknowns"' },
                           why:{ type:'string', description:'one or two sentences in plain words, naming the actual work. "Pricing per unit would undercharge since much of the labour is carrying materials up and down." Not "under-recover", not "protects both parties" — say what happens on the job.' } } },
 
-          duration:   { type:'object', required:['low_days','high_days','drivers'],
-                        properties:{
-                          low_days:{ type:'number' }, high_days:{ type:'number' },
-                          drivers:{ type:'array', items:{type:'string'},
-                            description:'what decides where in the range it lands, ≤ 10 words each. These are the things that, if answered, narrow it.' } } },
+          duration:   { type:'object', required:['low_days','high_days'],
+                        description:'days on site. What decides where it lands is in open_questions, not repeated here.',
+                        properties:{ low_days:{ type:'number' }, high_days:{ type:'number' } } },
 
           /**
            * What stops this being a confident number. Not everything unknown —
            * only what actually blocks. An estimate with nine caveats is an
            * estimate nobody sends.
            */
-          blockers:   { type:'array', description:'what must be settled before committing to a price; empty if nothing does. One line each — this is a list he scans, not a section he reads.',
-                        items:{ type:'object', required:['item','why','critical'],
+          /**
+           * One row per unknown, and the whole of what this page knows about it.
+           *
+           * These were three fields — `blockers`, `range.swing` and `assumptions`
+           * — and on a real job they printed the same six facts three times in
+           * three grammatical moods: the question, the two answers, and the
+           * answer assumed. Twenty-one bullets carrying six facts, across three
+           * sections a page apart, so nothing sat next to the thing that would
+           * settle it.
+           *
+           * They are one thing. What nobody knows, what this estimate assumed
+           * anyway, and what the answer moves.
+           */
+          open_questions: { type:'array',
+                        description:'every unknown that moves the price, one row each. Never repeat a row in different words — if two questions resolve on the same measurement, they are one question.',
+                        items:{ type:'object', required:['question','assumed','swing','critical'],
                           properties:{
-                            item:{ type:'string', description:'≤ 10 words' },
-                            why:{ type:'string', description:'what it moves — a number, a method, a liability. ≤ 20 words' },
-                            critical:{ type:'boolean', description:'true when a wrong guess here is four figures or a liability, rather than a detail he can carry' } } } },
+                            question:{ type:'string', description:'what nobody knows yet, ≤ 10 words: "Crown condition — repair or rebuild"' },
+                            assumed:{ type:'string', description:'what this estimate assumed in its absence, ≤ 15 words: "Cracked, not structurally failed"' },
+                            swing:{ type:'string', description:'what the answer moves, in money where the card gives money, ≤ 15 words: "$280 repair vs $1,100 rebuild"' },
+                            critical:{ type:'boolean', description:'true when a wrong guess here is four figures or a liability' } } } },
 
           /**
            * The errands, gathered across every blocker rather than repeated under
@@ -130,7 +138,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
            * in, factors at their high. `swing` names what actually flips between
            * them, because a range whose spread cannot be explained is a shrug.
            */
-          range:      { type:'object', required:['low','high','swing'],
+          range:      { type:'object', required:['low','high'],
                         properties:{
                           low:  { type:'object', required:['labor','materials','equipment','conditions'],
                                   properties:{ labor:{type:'number'}, materials:{type:'number'},
@@ -140,13 +148,9 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                                   properties:{ labor:{type:'number'}, materials:{type:'number'},
                                     equipment:{type:['number','null']}, conditions:{type:['number','null']},
                                     conditions_basis:{type:'string'} } },
-                          equipment_note:{ type:'string', description:'required when either equipment figure is null: what it is and why there is no number yet' },
-                          swing:{ type:'array', items:{type:'string'},
-                            description:'the two or three assumptions that differ between the columns, ≤ 12 words each' } } },
+                          equipment_note:{ type:'string', description:'required when either equipment figure is null: what it is and why there is no number yet, in one sentence' } } },
 
-          explanation:{ type:'string', description:'one or two sentences under the range, in plain words, that Dan could say out loud to a client' },
-
-          scope_sentence:{ type:'string', description:'one or two sentences of plain scope language Dan can lift straight into his own proposal' },
+          scope_sentence:{ type:'string', description:'the job in plain words, two sentences at most, written so Dan can lift it straight into his own proposal. This is the only prose description of the work on the page.' },
 
           /**
            * The most useful block and the most dangerous. A fluent invention
@@ -158,10 +162,10 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                         items:{ type:'object', required:['objection','response','grounded_in'],
                           properties:{
                             objection:{ type:'string', description:'in the words a client would actually use, ≤ 15 words' },
-                            response:{ type:'string', description:'the consequence, not the persuasion. ≤ 40 words' },
+                            response:{ type:'string', description:'two sentences: the consequence, and the number that settles it. ≤ 35 words. "Portland is too hard and spalls the face" is half an answer without "$32–52 a bag against $14–20".' },
                             grounded_in:{ type:'string', description:'the rate card key, the integrity spec, or the quoted words from the memo this rests on' } } } },
 
-          validity:   { type:'string', description:'how long the range holds and what would move it — name the volatile input for this job' },
+          validity:   { type:'string', description:'one sentence: how long it holds, and the single volatile input. Not a paragraph about scheduling.' },
           /**
            * Two ends per line, never one committed figure. The page leads with a
            * range and 3a tells you not to commit a price; a `cost` column asked
@@ -179,22 +183,10 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                           properties:{ line:{type:'string'}, card:{type:'string'}, range:{type:'string'},
                             qty:{type:'string'}, low:{type:['number','null']}, high:{type:['number','null']},
                             chosen:{type:['number','null']}, rationale:{type:'string'} } } },
-          materials:  { type:'array', items:{type:'object', properties:{ material:{type:'string'}, spec:{type:'string'},
-                            supplier:{type:'string'}, qty:{type:'string'}, unit:{type:'string'}, cost:{type:'number'} } } },
-          onsite_days:{ type:'number', description:'working days on site, incl. setup and strike' },
           totals:     { type:'object', properties:{ labor:{type:'number'}, materials:{type:'number'},
                             subtotal_ex_access:{type:'number'}, equipment:{type:['number','null']},
                             total:{type:['number','null']}, tax_classification:{type:'string'}, tax_note:{type:'string'} } },
-          cross_check:{ type:'object', required:['headline','method_a','method_b','gap','reading','recommendation'],
-                        properties:{ headline:{type:'string', description:'the pricing decision in ≤ 10 words'},
-                          method_a:{type:'object'}, method_b:{type:'object'},
-                          gap:{type:'string'}, reading:{type:'string'}, recommendation:{type:'string'} } },
-          assumptions:{ type:'array', items:{type:'object', required:['what','why_it_matters'],
-                          properties:{ what:{type:'string'}, why_it_matters:{type:'string'} } } },
-          tax_lines:  { type:'array', items:{type:'object', properties:{ line:{type:'string'},
-                          cls:{type:'string'}, basis:{type:'string'} } } },
-
-          tax_action: { type:'string', description:'what Dan actually does about tax on this job, as an instruction — "Add sales tax to the whole invoice; every line here is a taxable repair." Not a classification he has to translate into an action.' },
+          tax_action: { type:'string', description:'ONE sentence telling Dan what to do about tax — "Add sales tax to the whole invoice; every line here is a taxable repair." Where lines differ, say which are exempt and stop. Not a paragraph, and never a per-line table.' },
         },
       },
     }],
