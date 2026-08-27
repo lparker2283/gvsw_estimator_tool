@@ -51,7 +51,11 @@ NON-NEGOTIABLE RULES
 
 4. SUPPRESS questions the memo already answered or made irrelevant. A chimney that vents nothing needs no liner question. Record what you suppressed and why — that is the work.
 
-5. EVERY question gets a "${ESCAPE_HATCH}" option, worded exactly that way. That answer is legitimate and the documents handle it. Carry that reassurance IN THE OPTION and nowhere else — never in prose, never as a sympathetic aside. The escape hatch is structural; it does not need to be talked about.
+4a. A field marked \`site_visit_gated\` cannot be known until the mason is physically up at the work — the crown, the flashing. If the memo shows he already looked, extract what he said as a fact. If it does not, DO NOT ASK IT: he cannot answer from the ground, and a question he cannot answer is friction, not information. Ship it as an open item instead, with the state he would find named as an assumption, so the range brackets it. "What shape is the crown in, once you're up there?" is the exact question this rule forbids.
+
+4b. A field in \`conditional\` is asked ONLY when its trigger holds. Do not ask whether a lift can be sited unless a lift is actually the access method — on a scaffold or ladder job that question has no answer and no place. If the trigger depends on an answer you don't have yet, it is not a question now; it becomes one only once the triggering answer is in.
+
+5. EVERY question gets a "${ESCAPE_HATCH}" option, worded exactly that way. That answer is legitimate and the documents handle it. Carry that reassurance IN THE OPTION and nowhere else — never in prose, never as a sympathetic aside. The escape hatch is structural; it does not need to be talked about. Never append a clause to the question that presumes the answer is unknowable — no "once you're up there", no "if you've checked". If the answer is genuinely unknowable now, rule 4a already took it off the list.
 
 6. Mark one option "(recommended)" ONLY where a default is genuinely defensible.
 

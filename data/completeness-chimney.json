@@ -2,13 +2,16 @@
   "category": "chimney",
   "label": "Chimney Repair",
   "principle": "The tool asks only for what it cannot responsibly derive. Every question below exists because getting it wrong changes the number, the method, or Dan's liability — not because a form has a blank in it.",
-
   "required": [
     {
       "field": "scope_determination",
       "ask": "What's the scope?",
       "why": "These are three different line items with a 20x price spread ($650 repoint to $14,000 full rebuild). Nothing downstream can be priced until this is settled.",
-      "blocks": ["pricing", "tax_classification", "timeline"],
+      "blocks": [
+        "pricing",
+        "tax_classification",
+        "timeline"
+      ],
       "derivable_from_memo": true
     },
     {
@@ -16,7 +19,9 @@
       "unit": "linear feet",
       "ask": "How many feet of chimney above the roofline?",
       "why": "Partial rebuild is priced per linear foot ($380–750/lin ft). A two-foot error is a four-figure error.",
-      "blocks": ["pricing"],
+      "blocks": [
+        "pricing"
+      ],
       "derivable_from_memo": false,
       "refuse_to_infer": "Never estimate chimney height from a photograph or from the house's apparent size. Ask, or price contingent on a measured site visit."
     },
@@ -25,57 +30,85 @@
       "unit": "feet from grade",
       "ask": "How high off the ground is the work?",
       "why": "Above 12 ft triggers the scaffolding factor (+20–35%). It also determines whether a ladder is even legal to work from.",
-      "blocks": ["access_method", "pricing"],
+      "blocks": [
+        "access_method",
+        "pricing"
+      ],
       "derivable_from_memo": false
     },
     {
       "field": "access_method",
-      "options": ["Ladder", "Roof jacks", "Pipe scaffold", "Boom lift", "Don't know yet — measure on site"],
+      "options": [
+        "Ladder",
+        "Pipe scaffold",
+        "Boom lift",
+        "Don't know yet — measure on site"
+      ],
       "ask": "How are you getting up there?",
       "why": "This is a real cost line, not a percentage. A boom rental is a hard dollar figure plus delivery; scaffold is labor-days. The rate card's +20–35% covers scaffold, not equipment rental.",
-      "blocks": ["pricing", "timeline"],
+      "blocks": [
+        "pricing",
+        "timeline"
+      ],
       "derivable_from_memo": true
-    },
-    {
-      "field": "lift_placement_feasible",
-      "type": "boolean_or_unknown",
-      "ask": "If it's a lift — can it actually get where it needs to be? Gate width, ground firm enough, anything overhead?",
-      "why": "A boom that cannot be sited is a quoted cost that evaporates and takes the schedule with it. Overhead service drops near a chimney are common and are a stop-work condition, not an inconvenience.",
-      "blocks": ["access_method", "risk_register"],
-      "derivable_from_memo": true,
-      "escalate_if": "unknown",
-      "escalation": "Price the job with a site-visit gate before the access line is committed, and state the contingency plainly on the internal assessment."
     },
     {
       "field": "flue_count",
       "ask": "How many flues?",
       "why": "Caps are priced per flue ($280–650 each). Also bears on liner scope.",
-      "blocks": ["pricing"],
+      "blocks": [
+        "pricing"
+      ],
       "derivable_from_memo": false
     },
     {
       "field": "crown_condition",
-      "options": ["Looks fine", "Cracked", "Shot — needs rebuilding", "Don't know yet — measure on site"],
+      "options": [
+        "Looks fine",
+        "Cracked",
+        "Shot — needs rebuilding",
+        "Don't know yet — measure on site"
+      ],
       "ask": "What shape is the crown in?",
       "why": "Repair is $280–650; rebuild is $550–1,100. The crown is also a water-contact surface, which carries a mandatory material spec.",
-      "blocks": ["pricing", "integrity_flags"],
+      "blocks": [
+        "pricing",
+        "integrity_flags"
+      ],
       "derivable_from_memo": false,
-      "integrity_spec": "water_contact_mortar"
+      "integrity_spec": "water_contact_mortar",
+      "site_visit_gated": true
     },
     {
       "field": "flashing_condition",
-      "options": ["Looks fine", "Needs replacing", "Don't know yet — measure on site"],
+      "options": [
+        "Looks fine",
+        "Needs replacing",
+        "Don't know yet — measure on site"
+      ],
       "ask": "Is the flashing getting replaced?",
       "why": "$550–1,600, and it is the most common water path into the structure. If the chimney is being rebuilt above the roof and the flashing is left, the failure returns and it looks like Dan's fault.",
-      "blocks": ["pricing", "warranty_exposure"],
-      "derivable_from_memo": false
+      "blocks": [
+        "pricing",
+        "warranty_exposure"
+      ],
+      "derivable_from_memo": false,
+      "site_visit_gated": true
     },
     {
       "field": "liner_status",
-      "options": ["Intact", "Damaged", "No liner", "Don't know yet — measure on site"],
+      "options": [
+        "Intact",
+        "Damaged",
+        "No liner",
+        "Don't know yet — measure on site"
+      ],
       "ask": "What's the liner situation?",
       "why": "Safety-critical if the chimney serves a fuel-burning appliance. Also flips tax classification: a complete flue or liner replacement is a capital improvement; patching one is a taxable repair.",
-      "blocks": ["tax_classification", "risk_register"],
+      "blocks": [
+        "tax_classification",
+        "risk_register"
+      ],
       "derivable_from_memo": false,
       "refuse_to_infer": "Never assume a liner is sound. If the chimney is in service and the liner is unknown, an inspection line item precedes any rebuild quote."
     },
@@ -83,7 +116,10 @@
       "field": "construction_date",
       "ask": "Roughly how old is the house?",
       "why": "Pre-1930 soft brick requires Type N or NHL lime mortar. Portland-based mortar spalls the face. This is a specification, not a preference, and NHL runs roughly 2–3x Type S in material cost.",
-      "blocks": ["material_spec", "pricing"],
+      "blocks": [
+        "material_spec",
+        "pricing"
+      ],
       "derivable_from_memo": false,
       "integrity_spec": "historic_mortar"
     },
@@ -91,12 +127,30 @@
       "field": "target_window",
       "ask": "When does this need to happen?",
       "why": "November through March triggers cold-weather protection (+18–28%), and masonry cannot be laid in freezing temperatures at all. A date promised into a Rochester winter is a date that will slip.",
-      "blocks": ["pricing", "timeline"],
+      "blocks": [
+        "pricing",
+        "timeline"
+      ],
       "derivable_from_memo": true
     }
   ],
-
   "conditional": [
+    {
+      "field": "lift_placement_feasible",
+      "ask": "Can a lift actually get sited?",
+      "why": "A boom that cannot be sited is a quoted cost that evaporates and takes the schedule with it.",
+      "blocks": [
+        "access_method",
+        "risk_register"
+      ],
+      "escalation": "Price the job with a site-visit gate before the access line is committed, and state the contingency plainly on the internal assessment.",
+      "trigger": "access_method is 'Boom lift', OR the memo names a lift/boom/cherry-picker",
+      "options": [
+        "Yes — gate, ground and overhead all clear",
+        "No — one of them blocks it",
+        "Don't know yet — measure on site"
+      ]
+    },
     {
       "field": "historic_district",
       "trigger": "construction_date is pre-1930 OR address falls in a designated district",
@@ -116,7 +170,6 @@
       "why": "Slate and tile carry breakage liability that asphalt does not. Steep pitch changes the staging method and the day count."
     }
   ],
-
   "never_infer": [
     "Chimney height, from photographs or from the apparent scale of the house",
     "Liner condition, without inspection",
@@ -124,9 +177,12 @@
     "Whether a lift can be sited, from an aerial image",
     "The committed price — the tool proposes a range and a recommendation; Dan commits the number"
   ],
-
   "output_contract": {
     "if_all_required_present": "Produce all three deliverables with committed-figure recommendations.",
     "if_gaps_remain": "Produce the internal assessment with gaps listed as open items and the affected lines marked contingent. Do not produce a client-facing proposal containing a guessed figure — an unmarked guess in a client document is the failure mode this whole tool exists to prevent."
+  },
+  "_key_notes": {
+    "site_visit_gated": "True where the field cannot be known until the mason is physically up at the work — crown, flashing. Never asked as a pre-quote question unless the memo shows he already looked; otherwise it ships as an open item and the range brackets it.",
+    "trigger": "A conditional field is asked ONLY when its trigger holds. A lift-siting question on a scaffold job is friction with no answer."
   }
 }
