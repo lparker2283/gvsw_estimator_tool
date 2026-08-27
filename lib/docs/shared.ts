@@ -83,6 +83,10 @@ export const CSS = `
   td.num { font-weight: 700; color: ${B.accent}; text-align: center; }
   tr.strong td { background: #f4f3f0; }
 
+  /* A scope line's status where it has no price: "not yet quoted", "if needed".
+     A word, not a figure — the line table stopped being a second quote. */
+  td.tag { font-weight: 400; color: #6e6e6e; font-style: italic; white-space: nowrap; }
+
   /* Secondary text inside a cell — the line description and the card citation.
      Same size as every other small thing on the page; the basis column used to
      be monospace, which is a second typeface for no reason a reader could name. */

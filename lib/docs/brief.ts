@@ -35,20 +35,13 @@ export function brief(spec: any, _extraction: any) {
     'The number',
     H.openQuestions.length && "What's still open",
     H.nextSteps.length && 'Next steps',
-    scope.length && 'The lines',
+    scope.length && 'The work',
     H.objections.length && 'If they push back',
   ].filter(Boolean) as string[];
 
   const sec = (t: string) =>
     `<div class="sec"><div class="n">${present.indexOf(t) + 1}</div><h2>${esc(t)}</h2></div>`;
   const has = (t: string) => present.includes(t);
-
-  const basisFor = (task: string, i: number) => {
-    const d = (spec.derivation || []).find((x: any) =>
-      String(x.line || '').toLowerCase().trim() === String(task || '').toLowerCase().trim())
-      || (spec.derivation || [])[i];
-    return d ? [d.card, d.range].filter(Boolean).map(esc).join(' · ') : '';
-  };
 
   return page('Brief', `
     <div class="eyebrow">${esc(CO.name)}</div>
@@ -64,6 +57,7 @@ export function brief(spec: any, _extraction: any) {
     ${H.range?.equipment_note ? `<p class="note">${esc(H.range.equipment_note)}</p>` : ''}
     ${H.effectiveRate ? `<p class="rate">${esc(effectiveRateLine(H.effectiveRate))}</p>` : ''}
     ${H.validity ? `<p class="note">${esc(H.validity)}</p>` : ''}
+    ${scope.length ? `<p class="note">The range above is the number. The work it pays for is listed further down — that list is the scope, not a second quote.</p>` : ''}
 
     ${has("What's still open") ? `
       ${sec("What's still open")}
@@ -82,31 +76,30 @@ export function brief(spec: any, _extraction: any) {
       ${sec('Next steps')}
       <ol>${H.nextSteps.map(n => `<li>${esc(n)}</li>`).join('')}</ol>` : ''}
 
-    ${has('The lines') ? `
-      ${sec('The lines')}
-      <table><thead><tr><th style="width:26px">#</th><th>Line</th>
-        <th style="text-align:right;width:70px">Low</th><th style="text-align:right;width:70px">High</th>
-        <th style="width:26%">Basis</th></tr></thead><tbody>
+    ${has('The work') ? `
+      ${sec('The work')}
+      <table><tbody>
         ${scope.map((s: any, i: number) => {
-          const unpriced = s.low == null && s.high == null;
-          const star = s.contingent && !unpriced ? ' *' : '';
+          /**
+           * Two states earn a word, and only two. A line with no figure at
+           * either end is not quoted yet — the access rental. A line that sits
+           * in the high column but not the low is a genuine maybe — a crown
+           * rebuild that happens only if the crown proves shot. Everything else
+           * is the job: it happens, and the range already carries the spread in
+           * its quantity, so it needs no tag. `contingent` in the data means
+           * "amount confirmed on site", not "optional" — mapping it to "if
+           * needed" mislabelled the repoint, which is the whole point of the job.
+           */
+          const tag = s.low == null && s.high == null ? 'not yet quoted'
+                    : s.low == null && s.high != null ? 'if needed'
+                    : '';
           return `
           <tr>
             <td class="num">${i + 1}</td>
             <td class="k">${esc(s.task)}<div class="sub-line">${esc(s.description)}</div></td>
-            ${unpriced
-              ? `<td class="r warn" colspan="2">NOT PRICED</td>`
-              : `<td class="r">${dollars(s.low ?? null)}${star}</td><td class="r">${dollars(s.high ?? null)}${star}</td>`}
-            <td class="basis">${basisFor(s.task, i)}</td>
+            <td class="r tag">${tag ? esc(tag) : ''}</td>
           </tr>`; }).join('')}
-        <tr class="strong">
-          <td class="num"></td><td class="k">Scope subtotal</td>
-          <td class="r">${dollars(spec.totals?.scope_low ?? null)}</td>
-          <td class="r">${dollars(spec.totals?.scope_high ?? null)}</td>
-          <td class="basis">${scope.some((s: any) => s.low == null && s.high == null) ? 'excludes the unpriced lines' : ''}</td>
-        </tr>
       </tbody></table>
-      ${scope.some((s: any) => s.contingent) ? '<p class="note">* Contingent — in the high column, out of the low.</p>' : ''}
       ${H.taxAction ? `<p class="first">${esc(H.taxAction)}</p>` : ''}
       ${H.scopeSentence ? `<p class="summary">“${esc(H.scopeSentence)}”</p>` : ''}` : ''}
 
