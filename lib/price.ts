@@ -213,6 +213,25 @@ export function validate(spec: any) {
   const card: any = ratecard;
 
   /**
+   * Coerce every field that must be an array before anything reduces over it.
+   *
+   * `spec.scope || []` guards a null, not a wrong type: a tool call is a model
+   * output, and on the first live run of the new schema `scope` came back as
+   * something other than an array, so `(spec.scope || []).reduce` threw and
+   * killed the whole submit — `price failed — (a.scope || []).reduce is not a
+   * function`. The shape of a model response is never a given, and one bad field
+   * must degrade to empty, and be recorded, not crash the job. A malformed array
+   * is normalised to empty here and named on the review copy, so the tool comes
+   * back saying what it could not read rather than dying mid-word.
+   */
+  for (const key of ['scope', 'derivation', 'materials', 'open_questions', 'next_steps', 'objections', 'tax_lines']) {
+    if (spec[key] !== undefined && !Array.isArray(spec[key])) {
+      problems.push(`${key} came back as ${typeof spec[key]}, not a list — dropped`);
+      spec[key] = [];
+    }
+  }
+
+  /**
    * A citation resolves against `categories.<cat>.items.<key>` OR against the
    * card's other top-level sections — quick_reference, adjustment_factors,
    * integrity_specs, tax. Only the first was checked, so every honest citation
