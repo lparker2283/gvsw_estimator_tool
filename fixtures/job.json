@@ -115,7 +115,7 @@
   "_validation": [],
   "model": {
     "recommendation": "Day rate. Not per square foot.",
-    "why": "Small quantity of masonry, large quantity of getting to it. Per-unit rates price production, and on this job you are mostly positioning a machine and carrying stone one piece at a time."
+    "why": "Small quantity of masonry, large quantity of getting to it: most of the labour is positioning a machine and carrying stone."
   },
   "duration": {
     "low_days": 6,
@@ -136,13 +136,13 @@
       "conditions": 2195,
       "conditions_basis": "difficult_access at 25%"
     },
-    "equipment_note": "Access equipment is not in either column. Nobody has quoted it, and a rental figure invented here is one you would have to honour."
+    "equipment_note": "Lift rental — nobody has quoted it yet."
   },
   "scope_sentence": "Rake and repoint the failed joints in the upper section of the stone chimney, reset shifted units, and seal the top against water entry. Chimney remains out of service.",
   "objections": [
     {
       "objection": "Why not just patch the crack from a ladder?",
-      "response": "Over twenty feet with stone that has already shifted, a ladder gives you one hand and no way to hold a unit while you bed it. The units come out and go back either way.",
+      "response": "Over twenty feet with stone already shifted, a ladder gives you one hand and nowhere to hold a unit while you bed it.",
       "grounded_in": "Memo: 20+ ft, stones appear to have shifted"
     },
     {
@@ -156,10 +156,9 @@
       "grounded_in": "Memo: non-functional, enclosed by cabinetry"
     }
   ],
-  "validity": "Holds 30 days. Stone and lime are the volatile inputs — the card flags materials up 8-14% since 2024.",
   "next_steps": [
-    "One site visit: measure path width at its narrowest, path length from the truck, height to the work, and ground condition.",
-    "One call to a rental yard with those numbers: weekly rate before day rate, stowed chassis width, platform capacity with a material rack, delivery and pickup quoted separately, and whether the damage waiver covers the property."
+    "Measure on site: path width at its narrowest, truck to chimney, height, ground condition.",
+    "Call a rental yard: weekly rate, stowed width, rack capacity, delivery, damage waiver."
   ],
   "tax_action": "Add sales tax to the whole invoice — every line here is a taxable repair, including the lift when it is billed on.",
   "open_questions": [
@@ -181,5 +180,7 @@
       "swing": "Six days versus nine — the lift bills by the day",
       "critical": true
     }
-  ]
+  ],
+  "client": "Henderson",
+  "area": "Pittsford"
 }

@@ -1,4 +1,25 @@
 {
+  "job": {
+    "client": "Henderson",
+    "area": "Pittsford"
+  },
+  "findings": [
+    {
+      "finding": "The chimney is dead and enclosed.",
+      "implication": "Taking it down to the roofline may beat repairing it. Your call.",
+      "severity": "high"
+    },
+    {
+      "finding": "Solo at 20 ft with 30 lb stone.",
+      "implication": "Spec the lift for a rack and capacity, not the cheapest reach.",
+      "severity": "high"
+    },
+    {
+      "finding": "The access route is finished flagstone.",
+      "implication": "Price protection, or exclude damage in writing.",
+      "severity": "medium"
+    }
+  ],
   "memo": {
     "recorded_by": "Lindsey Parker, standing in for Dan Quinn",
     "duration_sec": 92,

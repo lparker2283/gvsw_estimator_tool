@@ -1,5 +1,5 @@
 import { page, esc, CO } from './shared';
-import { highlights, daySpan, dollars, effectiveRateLine, ROWS, type Highlights } from '../highlights';
+import { highlights, whoWhere, daySpan, dollars, effectiveRateLine, ROWS, type Highlights } from '../highlights';
 
 /**
  * The document. Two pages, internal, and not a proposal.
@@ -46,8 +46,14 @@ export function brief(spec: any, _extraction: any) {
   return page('Brief', `
     <div class="eyebrow">${esc(CO.name)}</div>
     <h1>${esc(H.projectName)}</h1>
+    <!--
+      Who and where, in his own typing, directly under the title. This is the
+      line that stops a Pittsford job being priced as a Pittsburgh one, and it
+      is how he tells two chimney briefs apart on the tablet.
+    -->
+    ${whoWhere(H) ? `<p class="who">${esc(whoWhere(H))}</p>` : ''}
     <div class="rule"></div>
-    <p class="sub">${esc(H.proposalNo)}${H.dateIssued ? ` · ${esc(H.dateIssued)}` : ''} · from your memo · not a proposal</p>
+    <p class="sub">${esc(H.proposalNo)}${H.dateIssued ? ` · ${esc(H.dateIssued)}` : ''} · not a proposal</p>
 
     ${sec('Recommended range')}
     <p class="lead">${esc(H.model?.recommendation || 'See the range below.')}${
@@ -56,7 +62,6 @@ export function brief(spec: any, _extraction: any) {
     ${H.range ? rangeTable(H) : ''}
     ${H.range?.equipment_note ? `<p class="note">${esc(H.range.equipment_note)}</p>` : ''}
     ${H.effectiveRate ? `<p class="rate">${esc(effectiveRateLine(H.effectiveRate))}</p>` : ''}
-    ${H.validity ? `<p class="note">${esc(H.validity)}</p>` : ''}
 
     ${has("What's still open") ? `
       ${sec("What's still open")}
@@ -115,12 +120,18 @@ export function brief(spec: any, _extraction: any) {
     -->
     <div class="correct">
       <div class="minor">How to correct this doc</div>
-      <p class="note">Circle a line number and write the right figure. Quantity means I misheard you;
-      rate means the card is drifting; a line added or crossed out means I mis-scoped it.
-      Mark it up, email this page back, and I will log it.</p>
+      <!--
+        The old version explained the ledger's taxonomy — quantity means
+        misheard, rate means the card drifted. That is what the tool does with
+        a mark, not what he does with a pencil, and it was the longest sentence
+        on the page. Two instructions: how to mark, where to send.
+      -->
+      <p class="note">Circle a line number and write the right figure; cross a line out or write one in.
+      Email this page back and I'll log it.</p>
     </div>
 
-    <footer>${esc(CO.name)} · ${esc(CO.footer)}<br><em>${esc(CO.tagline)}</em></footer>
+    <!-- An internal page. The licensed-and-insured line and the tagline are for clients. -->
+    <footer>${esc(CO.name)} · ${esc(CO.city)}</footer>
   `);
 }
 

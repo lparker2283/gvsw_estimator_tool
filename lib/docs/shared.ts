@@ -52,6 +52,9 @@ export const CSS = `
   li { margin-bottom: 4px; }
 
   h1 { font-size: 18pt; margin: 0 0 5px; letter-spacing: -.01em; }
+  /* Client and town, under the title, at body size and weight: readable at
+     arm's length on the tablet without being a second title. */
+  .who { font-weight: 700; margin: 0 0 6px; }
   .rule { border-bottom: 2px solid ${B.accent}; margin-bottom: 9px; }
   .sub { font-size: 8.5pt; color: #6e6e6e; margin: 0 0 14px; }
 

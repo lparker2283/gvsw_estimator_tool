@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import type { Doc } from './docs';
 import { brandFor } from './brand';
-import { highlights, daySpan, dollars, effectiveRateLine } from './highlights';
+import { highlights, whoWhere, daySpan, dollars } from './highlights';
 
 // Built on first use: the SDK throws without a key, and Next imports this
 // module while collecting page data during the build, where no key exists.
@@ -82,12 +82,37 @@ export async function deliver(
  * emphasis and nothing else. No boxes, no rules, no colour. The three things he
  * needs off a phone screen are the price, that it is incomplete, and what to do
  * next, and they are the only bold lines in it.
+ *
+ * AND IT IS HALF THE LENGTH IT WAS.
+ *
+ * Three things went. The per-hour arithmetic line: true, on the page, and not
+ * one of the three things — it is what he reads at the table, not at the
+ * truck. The standing last step ("mark up the attached brief and reply with
+ * it — I read the marks and log them") and the sign-off ("full breakdown
+ * attached, and in Drive"), which said one thing in two paragraphs and now
+ * say it in one line. The rest of the saving is at the source: the equipment
+ * note, the findings and the next steps are capped in words where they are
+ * written, so the email does not have to cut them and the page gets the same
+ * economy for free.
  */
 export function deliveryEmail(
   spec: any, extraction?: any, review = false, brandKey?: string,
 ): { subject: string; html: string } {
   const H = highlights(spec);
-  const findings: any[] = (extraction?.findings || []).filter((f: any) => f.severity !== 'low');
+
+  /**
+   * High first, two at most. A finding is the one thing in this email he did
+   * not ask for, which is exactly why it earns its place — but three of them
+   * is a memo, and he stops reading at the second.
+   */
+  const rank: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  const findings: any[] = (extraction?.findings || [])
+    .filter((f: any) => f && f.severity !== 'low')
+    .sort((a: any, b: any) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9))
+    .slice(0, 2);
+  // "…enclosed. — Taking it down" reads as two sentences and a typo. The
+  // finding's full stop goes; the dash is the punctuation.
+  const finding = (f: any) => `${String(f.finding || '').replace(/\.\s*$/, '')} — ${f.implication || ''}`;
 
   const both = H.range && H.range.low.total != null && H.range.high.total != null;
   const partial = !!(H.range && (H.range.low.partial || H.range.high.partial));
@@ -97,9 +122,9 @@ export function deliveryEmail(
   const li = (t: string) => `<li style="margin-bottom:8px">${t}</li>`;
 
   /**
-   * Two sentences, and they carry the first two of the three things: how he
-   * would charge it with both ends and a duration, and — its own sentence,
-   * because it is the one people skim past — that the number is incomplete.
+   * One sentence carrying the first of the three things: how he would charge
+   * it, both ends, and a duration. The second — that it is incomplete — is its
+   * own line, because it is the one people skim past.
    */
   const headline = [
     // The human opener rides on the front of the price rather than sitting above
@@ -112,40 +137,38 @@ export function deliveryEmail(
   ].filter(Boolean).join(' ') + '.';
 
   /**
-   * Next steps, in the order he would do them, and always ending the same way:
-   * the marked-up page is the last step of every job, and it is the only step
-   * that makes the next estimate better.
+   * Who and where lead the subject. The proposal number stays first and intact
+   * — it is how a reply carrying the marked-up page finds its way back to the
+   * right job — but "Henderson, Pittsford" is how he thinks of the job, and a
+   * subject that opens with it is one he can find in a month.
    */
-  const steps = [...H.nextSteps, 'Mark up the attached brief and reply with it — I read the marks and log them.'];
+  const who = whoWhere(H);
+  const label = [who, H.projectName].filter(Boolean).join(' · ');
 
   return {
-    // The proposal number is in the subject on purpose: it is how a reply
-    // carrying the marked-up page finds its way back to the right job.
     subject: review
-      ? `[REVIEW] ${H.proposalNo} — ready for Dan`
-      : `${H.proposalNo} — ${H.projectName}`,
+      ? `[REVIEW] ${H.proposalNo} — ${who || H.projectName}`
+      : `${H.proposalNo} — ${label}`,
     html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#222;max-width:600px">
       ${review ? `<p style="${p};color:${GREY}">Review copy — nothing has gone to Dan.</p>` : ''}
 
       <p style="${p}">${headline}</p>
 
-      ${partial ? `<p style="${p}"><b>That number is not complete yet</b> — ${
-        H.range?.equipment_note || 'some of the job is still unpriced.'}</p>` : ''}
-
-      ${H.effectiveRate ? `<p style="${p}">${effectiveRateLine(H.effectiveRate)}</p>` : ''}
+      ${partial ? `<p style="${p}"><b>Not complete yet.</b> ${
+        H.range?.equipment_note || 'Part of the job is still unpriced.'}</p>` : ''}
 
       ${findings.length ? `
         <p style="${p}"><b>Worth knowing</b></p>
-        <ul style="margin:0 0 14px;padding-left:22px">${findings.map((f: any) =>
-          li(`${f.finding} — ${f.implication}`)).join('')}</ul>` : ''}
+        <ul style="margin:0 0 14px;padding-left:22px">${findings.map(f => li(finding(f))).join('')}</ul>` : ''}
 
-      <p style="${p}"><b>Next steps</b></p>
-      <ol style="margin:0 0 14px;padding-left:22px">${steps.map(li).join('')}</ol>
+      ${H.nextSteps.length ? `
+        <p style="${p}"><b>Next</b></p>
+        <ol style="margin:0 0 14px;padding-left:22px">${H.nextSteps.map(li).join('')}</ol>` : ''}
 
       ${review && spec._validation?.length
         ? `<p style="${p};color:${GREY}">Check ${spec._validation.length}: ${spec._validation.join(' · ')}</p>` : ''}
 
-      <p style="${p};color:${GREY}">Full breakdown attached, and in Drive.</p>
+      <p style="${p};color:${GREY}">Brief attached and in Drive — mark it up and reply.</p>
     </div>`,
   };
 }

@@ -127,7 +127,6 @@
       "grounded_in": "stone.dutchman_repair — $260-400/ea"
     }
   ],
-  "validity": "Holds 30 days. Bluestone pricing is the one that moves.",
   "next_steps": [],
   "tax_action": "Add sales tax to the whole invoice — this is a repair, not a complete replacement.",
   "open_questions": [
@@ -143,5 +142,7 @@
       "swing": "$260–400 in or out of the job",
       "critical": false
     }
-  ]
+  ],
+  "client": "Kaplan",
+  "area": "Brighton"
 }

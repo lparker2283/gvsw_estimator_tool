@@ -30,8 +30,15 @@ export type Question = {
   unit?: string;
 };
 
+/**
+ * Who the job is for and where it is, as heard. Both nullable: a memo that
+ * never says is a memo that never says, and the question page asks.
+ */
+export type Intake = { client: string | null; area: string | null };
+
 export type Extraction = {
   category: string;
+  job: Intake;
   fields: { field: string; value: string; confidence: 'high'|'medium'|'low'; source: string; consequence: string }[];
   suppressed: { question: string; why: string }[];
   refusals: { item: string; reason: string }[];
@@ -77,6 +84,14 @@ He reads this on a phone, standing on a job site, and he is not a words guy. Eve
 
 13. OPTION LABELS: at most 4 words, in the words a mason would SAY, not the words a condition report would print. "Looks fine" not "Sound". "Shot" not "Failed". "Needs replacing" not "Requires replacement". A bare adjective that only makes sense underneath a heading is not an option label — it has to be readable as an answer to the question, out loud. No trailing explanation, no parentheticals other than the "(recommended)" marker.
 
+14. FINDINGS: the finding in at most 8 words, the implication in at most 12. Both are read in an email on a phone, and only the top two make it there. "The chimney is dead and enclosed" / "Taking it down to the roofline may beat repairing it at height." Not a paragraph; he can ask.
+
+WHO AND WHERE
+
+15. Fill \`job.client\` and \`job.area\` from the memo — the client's name as he said it, and the town. Null where the memo does not say. Never a guess at a name. He confirms both on the next screen, so a wrong reading costs nothing and a null costs him typing.
+
+16. Place names come through transcription badly. This business works in and around Rochester NY; if the transcript names a place outside that area that sounds like one inside it — "Pittsburgh" for Pittsford, "Fairpoint" for Fairport, "Webster" is fine — put the local town in \`job.area\` and quote what was said in a field named \`locality\` at medium confidence. He corrects it if the job really is out of town.
+
 Return ONLY the JSON described by the tool schema.`;
 
 export async function extract(transcript: string, priorCorrections = ''): Promise<Extraction> {
@@ -89,9 +104,13 @@ export async function extract(transcript: string, priorCorrections = ''): Promis
       description: 'Structured reading of the memo plus the question set.',
       input_schema: {
         type: 'object',
-        required: ['category', 'fields', 'suppressed', 'refusals', 'findings', 'questions'],
+        required: ['category', 'job', 'fields', 'suppressed', 'refusals', 'findings', 'questions'],
         properties: {
           category:  { type: 'string', description: 'chimney | brick | stone | historic' },
+          job:       { type: 'object', required: ['client', 'area'],
+                       description: 'who the job is for and where it is, as heard. Prefilled on the confirmation screen; null where the memo does not say.',
+                       properties: { client: { type: ['string','null'], description: 'the client\'s name as he said it — "the Hendersons", "Mrs. Kaplan"' },
+                                     area:   { type: ['string','null'], description: 'the town, e.g. "Pittsford"' } } },
           fields:    { type: 'array', items: { type: 'object',
                         required: ['field','value','confidence','source','consequence'],
                         properties: { field:{type:'string'}, value:{type:'string'},
@@ -140,5 +159,11 @@ export async function extract(transcript: string, priorCorrections = ''): Promis
     const others = (q.options || []).filter(o => !ESCAPE_RE.test(o));
     return { ...q, options: [...others, ESCAPE_HATCH] };
   });
+
+  // Always the same shape, whatever the model returned. The question page
+  // prefills from it and a missing object there is a crash, not a blank.
+  const j: any = out.job && typeof out.job === 'object' ? out.job : {};
+  const str = (v: any) => (typeof v === 'string' && v.trim() ? v.trim() : null);
+  out.job = { client: str(j.client), area: str(j.area) };
   return out;
 }

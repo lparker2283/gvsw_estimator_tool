@@ -22,8 +22,12 @@ const slug = (s: string) => String(s || 'estimate')
   .slice(0, 60);
 
 export async function buildDocuments(spec: any, extraction: any, _transcript: string): Promise<Doc[]> {
+  // The client's name rides in the filename after the number, so a folder of
+  // briefs on the tablet reads as jobs rather than as a sequence. The number
+  // stays first and intact: the inbound route finds a returned page by it.
+  const stem = slug([spec.proposal_no, spec.client].filter(Boolean).join('-'));
   const pages: { name: string; filename: string; audience: Doc['audience']; html: string }[] = [
-    { name: 'Brief', filename: `${slug(spec.proposal_no)}-Brief.pdf`, audience: 'dan', html: brief(spec, extraction) },
+    { name: 'Brief', filename: `${stem}-Brief.pdf`, audience: 'dan', html: brief(spec, extraction) },
   ];
   // Through renderMany even for one, so that adding a second document back is a
   // line in this array rather than a second browser in the same lambda.

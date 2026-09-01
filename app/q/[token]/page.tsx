@@ -41,8 +41,25 @@ export default function Questions({ params }: { params: Promise<{ token: string 
   const [phase, setPhase] = useState<'asking' | 'submitting' | 'done' | 'failed'>('asking');
   const [failure, setFailure] = useState('');
 
+  /**
+   * The first screen: what's this job? Client and town, prefilled with what the
+   * extractor heard, confirmed by him.
+   *
+   * It exists because of one word. The first real memo transcribed "Pittsford"
+   * as "Pittsburgh", and nothing between the transcript and the priced page
+   * was in a position to notice — the model read it, believed it, and would
+   * have priced a Monroe County job to Allegheny County. The person who knows
+   * where the job is has to say so, once, in a box he can see. Both fields
+   * may be left blank; the screen is never skipped.
+   */
+  const [intake, setIntake] = useState<{ client: string; area: string }>({ client: '', area: '' });
+  const [onIntake, setOnIntake] = useState(true);
+
   useEffect(() => {
-    fetch(`/api/job/${token}`).then(r => r.json()).then(setJob);
+    fetch(`/api/job/${token}`).then(r => r.json()).then(j => {
+      setJob(j);
+      setIntake({ client: j?.intake?.client || '', area: j?.intake?.area || '' });
+    });
   }, [token]);
 
   const brand = brandFor(job?.brand);
@@ -62,7 +79,7 @@ export default function Questions({ params }: { params: Promise<{ token: string 
     try {
       const res = await fetch('/api/submit', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, answers: final }),
+        body: JSON.stringify({ token, answers: final, job: intake }),
       });
       // fetch does not throw on 4xx/5xx. Without this the page announced "Done."
       // over a failed submit, which is the worst of the available outcomes.
@@ -116,6 +133,35 @@ export default function Questions({ params }: { params: Promise<{ token: string 
     </Shell>
   );
 
+  // One segment per screen, the intake included. He can count them; nobody has to say it.
+  const segs = (
+    <div style={S.segs}>
+      {[null, ...qs].map((_: any, n: number) => (
+        <div key={n} style={{ ...S.seg, background: n <= (onIntake ? 0 : i + 1) ? brand.accent : brand.lineSoft }} />
+      ))}
+    </div>
+  );
+
+  if (onIntake) {
+    const field = (key: 'client' | 'area', label: string, placeholder: string, last: boolean) => (
+      <label style={S.field}>
+        <span style={S.label}>{label}</span>
+        <input value={intake[key]} placeholder={placeholder} autoFocus={key === 'client'}
+          onChange={e => setIntake({ ...intake, [key]: e.target.value })} style={S.input}
+          onKeyDown={e => { if (e.key === 'Enter' && last) setOnIntake(false); }} />
+      </label>
+    );
+    return (
+      <Shell brand={brand}>
+        {segs}
+        <h1 style={S.h1}>What&apos;s this job?</h1>
+        {field('client', 'Client', 'Name on the job', false)}
+        {field('area', 'Where', 'Town', true)}
+        <button onClick={() => setOnIntake(false)} style={S.retry}>Next</button>
+      </Shell>
+    );
+  }
+
   const q = qs[i];
   const last = i === qs.length - 1;
 
@@ -148,12 +194,7 @@ export default function Questions({ params }: { params: Promise<{ token: string 
 
   return (
     <Shell brand={brand}>
-      {/* One segment per question. He can count them; nobody has to say it. */}
-      <div style={S.segs}>
-        {qs.map((_: any, n: number) => (
-          <div key={n} style={{ ...S.seg, background: n <= i ? brand.accent : brand.lineSoft }} />
-        ))}
-      </div>
+      {segs}
 
       <h1 style={S.h1}>{q.q}</h1>
 
@@ -185,7 +226,8 @@ export default function Questions({ params }: { params: Promise<{ token: string 
         </button>
       </div>
 
-      {i > 0 && <button onClick={() => go(i - 1)} style={S.back}>← back</button>}
+      {/* Back from the first question lands on the intake, so a wrong town is one tap away. */}
+      <button onClick={() => { if (i > 0) go(i - 1); else { go(0); setOnIntake(true); } }} style={S.back}>← back</button>
     </Shell>
   );
 }
@@ -226,10 +268,15 @@ function styles(b: Brand): Record<string, React.CSSProperties> {
     optDunno:{ border:`1.5px dashed ${b.line}`, background:'transparent', color:b.muted },
     usual:   { fontSize:'10px', letterSpacing:'.14em', textTransform:'uppercase', color:b.accent,
                fontWeight:700, flexShrink:0 },
+    // The two intake fields. A label above each because a placeholder vanishes
+    // the moment the prefill lands, and "Henderson" alone does not say client.
+    field:   { display:'block', marginBottom:'14px' },
+    label:   { display:'block', fontSize:'11px', letterSpacing:'.14em', textTransform:'uppercase', color:b.muted,
+               fontWeight:700, marginBottom:'6px' },
     freeWrap:{ display:'flex', gap:'8px' },
     freeAbove:{ marginBottom:'14px' },
     freeBelow:{ marginTop:'14px' },
-    input:   { flex:1, minWidth:0, padding:'15px 18px', fontSize:'17px', fontFamily:'inherit',
+    input:   { flex:1, minWidth:0, width:'100%', boxSizing:'border-box', padding:'15px 18px', fontSize:'17px', fontFamily:'inherit',
                border:`1.5px solid ${b.line}`, borderRadius:'9px', background:b.surface, color:b.ink, outline:'none' },
     go:      { padding:'0 22px', fontSize:'16px', fontFamily:'inherit', fontWeight:600, background:b.accent,
                color:b.surface, border:'none', borderRadius:'9px', cursor:'pointer' },

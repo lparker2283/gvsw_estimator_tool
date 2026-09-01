@@ -1,5 +1,9 @@
 {
   "category": "stone",
+  "job": {
+    "client": "Kaplan",
+    "area": "Brighton"
+  },
   "fields": [],
   "suppressed": [],
   "refusals": [],

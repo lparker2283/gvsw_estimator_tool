@@ -52,9 +52,13 @@ page.on('request', async r => {
   const url = r.url();
   if (url.includes('/api/job/')) {
     return r.respond({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ questions: QUESTIONS, status: 'awaiting_answers', brand: 'gvsw' }) });
+      body: JSON.stringify({ questions: QUESTIONS, status: 'awaiting_answers', brand: 'gvsw',
+        // What the extractor heard — deliberately the wrong town, which is the case the screen exists for.
+        intake: { client: 'Henderson', area: 'Pittsburgh' } }) });
   }
   if (url.includes('/api/submit')) {
+    // The corrected town has to be in the body, or the screen was decoration.
+    console.log('submit body:', r.postData());
     // The real thing takes 30-90s. Six is enough to catch the frozen window.
     await new Promise(s => setTimeout(s, 6000));
     if (mode === 'fail') {
@@ -76,6 +80,14 @@ const clickFirstOption = async () => {
 
 await page.goto('http://localhost:3111/q/testtoken', { waitUntil: 'networkidle0' });
 await new Promise(s => setTimeout(s, 600));
+await shot('0-intake');
+console.log('intake heading:', await page.$eval('h1', h => h.innerText));
+
+// Correct the town the way he would: select the prefill, type over it, Next.
+await page.click('input[placeholder="Town"]', { clickCount: 3 });
+await page.keyboard.type('Pittsford');
+await page.evaluate(() => [...document.querySelectorAll('button')].find(x => /^Next$/.test(x.innerText))?.click());
+await new Promise(s => setTimeout(s, 300));
 await shot('1-first-question');
 
 await clickFirstOption();                       // q1
