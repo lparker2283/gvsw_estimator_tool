@@ -99,6 +99,17 @@ create index if not exists corrections_created_at_idx on corrections (created_at
 alter table jobs add column if not exists failure text;
 create index if not exists jobs_status_created_idx on jobs (status, created_at desc);
 
+-- Applied separately as supabase/migrations/2026-09-01-jobs-client-area.sql
+-- for a database that already exists; included here so a fresh one is correct.
+--
+-- Who the job is for and where it is, as Dan typed them on the first screen of
+-- the question page. Typed, not extracted: the first real memo came back with
+-- "Pittsburgh" for Pittsford, and a place name the tool inferred is a place
+-- name it can get wrong. These are the confirmed values; the extractor's guess
+-- lives in extraction.job and only ever prefills the screen.
+alter table jobs add column if not exists client text;
+alter table jobs add column if not exists area   text;
+
 -- Every table holds client data, and the server only ever reaches this database
 -- with the service_role key, which bypasses RLS. So RLS on with no policy is the
 -- intended state: the publishable key can then read nothing. Supabase's linter

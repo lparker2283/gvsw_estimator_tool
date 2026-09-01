@@ -27,6 +27,9 @@ export type Highlights = {
   projectName: string;
   proposalNo: string;
   dateIssued?: string;
+  /** Who and where, as Dan typed them on the first screen. Empty when he left them blank. */
+  client: string;
+  area: string;
 
   model: { recommendation: string; why: string } | null;
   duration: { low_days: number; high_days: number } | null;
@@ -36,7 +39,6 @@ export type Highlights = {
   effectiveRate: { labor: number; days: number; per_hour: number } | null;
   scopeSentence: string;
   objections: { objection: string; response: string; grounded_in: string }[];
-  validity: string;
   taxAction: string;
 };
 
@@ -45,6 +47,8 @@ export function highlights(spec: any): Highlights {
     projectName: spec.project_name || 'Estimate',
     proposalNo: spec.proposal_no || '',
     dateIssued: spec.date_issued,
+    client: spec.client || '',
+    area: spec.area || '',
 
     model: spec.model?.recommendation ? spec.model : null,
     duration: spec.duration?.low_days != null ? spec.duration : null,
@@ -54,9 +58,13 @@ export function highlights(spec: any): Highlights {
     effectiveRate: spec.effective_rate || null,
     scopeSentence: spec.scope_sentence || '',
     objections: spec.objections || [],
-    validity: spec.validity || '',
     taxAction: spec.tax_action || '',
   };
+}
+
+/** "Henderson, Pittsford" — whichever of the two he gave, and nothing when he gave neither. */
+export function whoWhere(H: Pick<Highlights, 'client' | 'area'>): string {
+  return [H.client, H.area].filter(Boolean).join(', ');
 }
 
 /** "6–9 days" — and just "6 days" when the two ends agree, because a range of one is not a range. */

@@ -5,6 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { envSecret } from '@/lib/secrets';
 import ratecard from '../data/ratecard.json';
+import type { Intake } from './extract';
 
 // Built on first use: the SDK throws without a key, and Next imports this
 // module while collecting page data during the build, where no key exists.
@@ -51,21 +52,51 @@ RULES
 
 10. NEVER describe a job you were not given. Access equipment, return site visits, day-rate billing, lead times — none of these are facts about a job unless this job's extraction contains them. If a sentence would read identically on a chimney and on a patio, it is filler; cut it.
 
+10a. WHERE THE JOB IS. When the input carries a JOB line, Dan typed it himself after reading the transcript. It overrides any place name in the transcript or the extraction: a memo transcribed as "Pittsburgh" on a job he says is in Pittsford is a Pittsford job — Monroe County frost line, Monroe County tax, this rate card. Never price to a place he did not confirm.
+
 LENGTH
 
-This is read on a reMarkable, on a job site, by a mason who is not a words guy. Every word past the decision is a word in his way.
+This is read on a reMarkable, on a job site, by a mason who is not a words guy. Every word past the decision is a word in his way. The ceilings below are checked by code and an overrun is reported on the review copy.
 
 11. HEADLINE: at most 10 words, and it must be a decision — "Day rate. Not per square foot." A restatement of the situation is not a headline.
 
-12. READING and RECOMMENDATION: two sentences each, ceiling. State the consequence — a number, a method, a liability. He already understands masonry; do not explain masonry to him.
+12. WHY: ONE sentence, at most 20 words, naming the actual work. He already understands masonry; do not explain masonry to him.
 
 13. SCOPE DESCRIPTIONS: one line. What the line covers, not why the line exists.
+
+13a. NEXT STEPS: each one starts with the verb — "Measure", "Call", "Ask the client" — and is at most 14 words. Everything to do on that trip, as a list of nouns, not a sentence about the trip: "Measure: path width, truck to chimney, height to the work, ground." He reads these off a phone and does them.
+
+13b. EQUIPMENT NOTE: at most 12 words, naming the thing and why there is no figure. "Lift rental — nobody has quoted it yet."
+
+13c. OBJECTIONS: at most three, the response at most 30 words.
 
 14. Anything you would have written as reassurance, delete. The document is structurally safe — nothing is committed, every gap is listed, and he can mark it up. Saying so again reads as anxiety.
 
 Return ONLY the tool JSON.`;
 
-export async function price(extraction: any, answers: Record<string, string>, priorCorrections = '') {
+/**
+ * The ceilings the prompt promises, so an overrun is reported rather than
+ * printed. Words, not characters: the prompt is written in words and a mason
+ * counts in words. Each is a little above the prompt's figure — the check is
+ * for a paragraph where a line was asked for, not for a preposition.
+ */
+const CAPS: { path: string; cap: number; pick: (spec: any) => (string | undefined)[] }[] = [
+  { path: 'model.recommendation', cap: 12, pick: s => [s.model?.recommendation] },
+  { path: 'model.why',            cap: 24, pick: s => [s.model?.why] },
+  { path: 'range.equipment_note', cap: 15, pick: s => [s.range?.equipment_note] },
+  { path: 'next_steps',           cap: 22, pick: s => s.next_steps || [] },
+  { path: 'objections.response',  cap: 36, pick: s => (s.objections || []).map((o: any) => o?.response) },
+  { path: 'open_questions.swing', cap: 18, pick: s => (s.open_questions || []).map((q: any) => q?.swing) },
+];
+
+const wordCount = (s: unknown) => String(s ?? '').trim().split(/\s+/).filter(Boolean).length;
+
+export async function price(
+  extraction: any, answers: Record<string, string>, priorCorrections = '', intake?: Intake | null,
+) {
+  // What he typed on the first screen. Only ever the confirmed value — the
+  // extractor's guess went to the screen, not here.
+  const jobLine = [intake?.client, intake?.area].filter(Boolean).join(', ');
   const msg = await anthropic().messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 8000,
@@ -78,7 +109,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
         required: ['project_name','model','duration','open_questions','next_steps','range',
                    'objections','scope','derivation','totals','tax_action'],
         properties: {
-          project_name:{ type:'string', description:'the job in at most eight words, as Dan would say it aloud' },
+          project_name:{ type:'string', description:'the work in at most eight words, as Dan would say it aloud. Not the client\'s name or the town — those are carried separately and printed beside it.' },
 
           /**
            * The five blocks Dan reads, in the order he reads them. This is not a
@@ -90,7 +121,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                         description:'how to charge for this job, and why',
                         properties:{
                           recommendation:{ type:'string', description:'≤ 12 words, a decision: "Day rate — repair with unknowns"' },
-                          why:{ type:'string', description:'one or two sentences in plain words, naming the actual work. "Pricing per unit would undercharge since much of the labour is carrying materials up and down." Not "under-recover", not "protects both parties" — say what happens on the job.' } } },
+                          why:{ type:'string', description:'ONE sentence, ≤ 20 words, naming the actual work. "Per-unit would undercharge: most of the labour is carrying stone up and down." Not "under-recover", not "protects both parties" — say what happens on the job.' } } },
 
           duration:   { type:'object', required:['low_days','high_days'],
                         description:'days on site. What decides where it lands is in open_questions, not repeated here.',
@@ -129,7 +160,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
            * and a list that says so is a list he can work from.
            */
           next_steps: { type:'array', items:{type:'string'},
-                        description:'the actions that clear the blockers, consolidated — one bullet per trip or call, naming everything to do while there. "One roof visit: measure roof-to-cap on all four sides, photograph crown and flashing." Not one bullet per blocker.' },
+                        description:'the actions that clear the blockers, consolidated — one bullet per trip or call, naming everything to do while there. Verb first, ≤ 14 words: "Measure on the roof: roof-to-cap on four sides; photograph crown and flashing." Not one bullet per blocker.' },
 
           /**
            * Two columns. Low is the bottom of every cited band, the fewer-days
@@ -148,7 +179,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
                                   properties:{ labor:{type:'number'}, materials:{type:'number'},
                                     equipment:{type:['number','null']}, conditions:{type:['number','null']},
                                     conditions_basis:{type:'string'} } },
-                          equipment_note:{ type:'string', description:'required when either equipment figure is null: what it is and why there is no number yet, in one sentence' } } },
+                          equipment_note:{ type:'string', description:'required when either equipment figure is null: what it is and why there is no number yet, ≤ 12 words. "Lift rental — nobody has quoted it yet."' } } },
 
           scope_sentence:{ type:'string', description:'the job in plain words, two sentences at most, written so Dan can lift it straight into his own proposal. This is the only prose description of the work on the page.' },
 
@@ -157,15 +188,19 @@ export async function price(extraction: any, answers: Record<string, string>, pr
            * repeated to a client costs him the room, so every note must name what
            * it stands on — a card band, an integrity spec, or his own words.
            */
-          objections: { type:'array', maxItems: 4,
-                        description:'what a client is likely to push back on, and what Dan can say. Three grounded beats six fluent. Omit any you cannot ground.',
+          objections: { type:'array', maxItems: 3,
+                        description:'what a client is likely to push back on, and what Dan can say. Two grounded beat six fluent. Omit any you cannot ground.',
                         items:{ type:'object', required:['objection','response','grounded_in'],
                           properties:{
                             objection:{ type:'string', description:'in the words a client would actually use, ≤ 15 words' },
-                            response:{ type:'string', description:'two sentences: the consequence, and the number that settles it. ≤ 35 words. "Portland is too hard and spalls the face" is half an answer without "$32–52 a bag against $14–20".' },
+                            response:{ type:'string', description:'two sentences: the consequence, and the number that settles it. ≤ 30 words. "Portland is too hard and spalls the face" is half an answer without "$32–52 a bag against $14–20".' },
                             grounded_in:{ type:'string', description:'the rate card key, the integrity spec, or the quoted words from the memo this rests on' } } } },
 
-          validity:   { type:'string', description:'one sentence: how long it holds, and the single volatile input. Not a paragraph about scheduling.' },
+          /**
+           * `validity` used to sit here — "holds 30 days, stone is the volatile
+           * input" — and read the same on every job. Rule 10 says that is
+           * filler. Gone from the page and from the schema, not just hidden.
+           */
           /**
            * Two ends per line, never one committed figure. The page leads with a
            * range and 3a tells you not to commit a price; a `cost` column asked
@@ -193,6 +228,7 @@ export async function price(extraction: any, answers: Record<string, string>, pr
     tool_choice: { type: 'tool', name: 'priced_job' },
     messages: [{ role: 'user', content:
       `RATE CARD:\n${JSON.stringify(ratecard)}\n\n` +
+      (jobLine ? `JOB (typed by Dan — see rule 10a): ${jobLine}\n\n` : '') +
       `EXTRACTION:\n${JSON.stringify(extraction)}\n\n` +
       `ANSWERS FROM DAN:\n${JSON.stringify(answers)}` +
       // What he already corrected by hand, on documents this tool produced. A
@@ -338,6 +374,19 @@ export function validate(spec: any) {
         per_hour: Math.round(R.low.labor / hours),
       };
     }
+  }
+
+  /**
+   * The prompt's word ceilings, checked. Nothing is truncated — a sentence cut
+   * mid-word is worse than a long one — but the review copy names the field,
+   * so a model that has started writing paragraphs again is caught on the
+   * first job rather than the fifth.
+   */
+  for (const { path, cap, pick } of CAPS) {
+    pick(spec).forEach((s, i) => {
+      const n = wordCount(s);
+      if (n > cap) problems.push(`${path}${pick(spec).length > 1 ? `[${i + 1}]` : ''} is ${n} words (ceiling ${cap})`);
+    });
   }
 
   spec._validation = problems;

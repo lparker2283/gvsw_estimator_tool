@@ -33,12 +33,22 @@ function describe(err: unknown): string {
   return parts.join(' <- ');
 }
 
+/** A typed field, or nothing. Trimmed and bounded: this goes into a filename and a subject line. */
+const typed = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 80) : null);
+
 export async function POST(req: NextRequest) {
-  const { token, answers } = await req.json();
+  const { token, answers, job: intakeRaw } = await req.json();
   const job = await db.getJobByToken(token);
   if (!job) return NextResponse.json({ error: 'unknown job' }, { status: 404 });
 
-  await db.updateJob(job.id, { answers, status: 'generating', failure: null });
+  /**
+   * Who and where, from the first screen. Stored on the row as well as in the
+   * spec so a job can be found by client before it has ever been priced, and
+   * so a re-opened link shows what he typed rather than the extractor's guess.
+   */
+  const intake = { client: typed(intakeRaw?.client), area: typed(intakeRaw?.area) };
+
+  await db.updateJob(job.id, { answers, ...intake, status: 'generating', failure: null });
 
   let stage = 'price';
   try {
@@ -46,7 +56,12 @@ export async function POST(req: NextRequest) {
     // reaches for the card. A ledger nothing reads is a diary.
     const prior = digest(await db.recentCorrections().catch(() => []));
 
-    const spec = await price(job.extraction, answers, prior);
+    const spec = await price(job.extraction, answers, prior, intake);
+
+    // His typing, not the model's echo of it. Set after pricing so the model
+    // cannot rewrite the client's name on its way through.
+    spec.client = intake.client;
+    spec.area = intake.area;
 
     /**
      * The number is taken only once pricing has actually succeeded. It used to
